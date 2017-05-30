@@ -16,7 +16,7 @@
   <div class="form-group">
     <label for="recipe-ingredient" class="col-sm-2 control-label">Ingredientes:</label>
     <div class="col-sm-10">
-      <table class="table table-bordered">
+      <table class="table table-bordered table-striped">
         <thead>
           <tr>
             <th>Item</th>
