@@ -19,10 +19,10 @@ jQuery(document).ready(function(){
     jQuery(this).parent().parent().remove();
   });
 
-  jQuery('form').on('submit', function(e){
+  jQuery('form#save-ingredient').on('submit', function(e){
     e.preventDefault();
     var data = {
-      'action': 'save',
+      'action': 'set_ingredients',
       'nonce': ajax_object.nonce,
       'data': jQuery(this).serializeJSON()
     };

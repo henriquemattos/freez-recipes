@@ -1,5 +1,6 @@
 <div class="container-fluid">
 <h2>Adicionar Receita</h2>
+<div id="alert"></div>
 <form class="form-horizontal">
   <div class="form-group">
     <label for="recipe-title" class="col-sm-2 control-label">Título da Receita:</label>

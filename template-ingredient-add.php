@@ -1,6 +1,7 @@
 <div class="container-fluid">
   <h2>Adicionar Ingrediente</h2>
-  <form class="form-horizontal">
+  <div id="alert"></div>
+  <form id="save-ingredient" class="form-horizontal">
     <div class="form-group">
       <label for="input-ingredient" class="col-sm-2 control-label">Ingrediente:</label>
       <div class="col-sm-10">
