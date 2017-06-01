@@ -27,6 +27,8 @@ class Freez_Recipes {
       // add_action('admin_init',array($this, 'vworders_init'));
       add_action('wp_ajax_set_ingredients', array($this, 'set_ingredients'));
       add_action('wp_ajax_nopriv_set_ingredients', array($this, 'set_ingredients'));
+      add_action('wp_ajax_set_recipes', array($this, 'set_recipes'));
+      add_action('wp_ajax_nopriv_set_recipes', array($this, 'set_recipes'));
       add_action('admin_enqueue_scripts', array($this, 'enqueue_style_script'));
       $this->table_recipes = $wpdb->prefix . 'freez_recipes';
       $this->table_ingredients = $wpdb->prefix . 'freez_ingredients';
@@ -78,16 +80,54 @@ class Freez_Recipes {
     if($hook === 'toplevel_page_freez-recipes' || $hook === 'receitas_page_add-recipe' || $hook === 'receitas_page_list-ingredients' || $hook === 'receitas_page_add-ingredient') {
       wp_enqueue_style('bootstrap',  plugin_dir_url( __FILE__ ) . 'css/bootstrap.min.css');
       wp_enqueue_style('bootstrap-theme',  plugin_dir_url( __FILE__ ) . 'css/bootstrap-theme.min.css', array('bootstrap'));
+      wp_enqueue_style('select2-css',  plugin_dir_url( __FILE__ ) . 'css/select2.min.css', array('bootstrap', 'bootstrap-theme'));
       wp_enqueue_style('freez-default',  plugin_dir_url( __FILE__ ) . 'css/default.css', array('bootstrap', 'bootstrap-theme'));
       wp_enqueue_script('bootstrap-js', plugin_dir_url( __FILE__ ) . 'js/bootstrap.min.js', array('jquery'), '1.0.0', true);
       wp_enqueue_script('jquery-mask', plugin_dir_url( __FILE__ ) . 'js/jquery.mask.min.js', array('jquery', 'bootstrap-js'), '1.0.0', true);
       wp_enqueue_script('jquery-serialize', plugin_dir_url(__FILE__) . 'js/jquery.serializejson.min.js', array('jquery'), '1.0.0', true);
+      wp_enqueue_script('select2-js', plugin_dir_url(__FILE__) . 'js/select2.min.js', array('jquery', 'bootstrap-js'), '1.0.0', true);
       wp_enqueue_script('freez-recipes', plugin_dir_url( __FILE__ ) . 'js/default.js', array('jquery', 'bootstrap-js', 'jquery-mask', 'jquery-serialize'), '1.0.0', true);
       wp_localize_script('freez-recipes', 'ajax_object', array('ajax_url' => admin_url('admin-ajax.php'),'nonce' => wp_create_nonce('freez_save_nonce')));
     }
   }
   public function set_recipes(){
+    global $wpdb;
+    ob_clean();
+    if(!isset($_POST['data'])){
+      print_r(json_encode(array('response' => 'You must POST some data to this action.')));
+      wp_die();
+    }
+    $data = array(
+      'title'        => $_POST['data']['recipe-title'],
+      'description'  => $_POST['data']['recipe-description'],
+      'instructions' => $_POST['data']['recipe-instructions']
+    );
 
+    $wpdb->insert($this->table_recipes, $data);
+
+    if($wpdb->last_error !== ''){
+      status_header(400);
+      $str = htmlspecialchars($wpdb->last_result, ENT_QUOTES) . ' // // // ' . htmlspecialchars($wpdb->last_query, ENT_QUOTES);
+      print_r(json_encode(array('response' => $str)));
+      wp_die();
+    }
+    $id = $wpdb->insert_id;
+    foreach($_POST['data']['recipe-ingredient'] as $ingredients){
+      $data = array(
+        'id_recipes'     => $id,
+        'id_ingredients' => $ingredients['ingredient'],
+        'amount'         => $ingredients['amount']
+      );
+      $wpdb->insert($this->table_recipes_ingredients, $data);
+      if($wpdb->last_error !== ''){
+        status_header(400);
+        $str = htmlspecialchars($wpdb->last_result, ENT_QUOTES) . ' // // // ' . htmlspecialchars($wpdb->last_query, ENT_QUOTES);
+        print_r(json_encode(array('response' => $str)));
+        wp_die();
+      }
+      print_r(json_encode(array('response' => "Receita ({$id}) {$_POST['data']['recipe-title']} inserida com sucesso")));
+      wp_die();
+    }
   }
   public function set_ingredients(){
     global $wpdb;
@@ -95,7 +135,7 @@ class Freez_Recipes {
     ob_clean();
 
     if(!isset($_POST['data'])){
-      print_r(json_encode(array('response' => 'You must POST some data to this action')));
+      print_r(json_encode(array('response' => 'You must POST some data to this action.')));
       wp_die();
     }
     $data = array('name' => $_POST['data']['input-ingredient']);
@@ -120,14 +160,18 @@ class Freez_Recipes {
     include_once 'template-recipe-view.php';
   }
   public function set_recipe(){
+    $results = $this->list_ingredients();
     include_once 'template-recipe-add.php';
   }
   public function ingredients(){
-    global $wpdb;
-    $query = "SELECT * FROM {$this->table_ingredients} ORDER BY name ASC";
-    $results = $wpdb->get_results($query, OBJECT);
+    $results = $this->list_ingredients();
     include_once 'template-ingredient-add.php';
     include_once 'template-ingredient-list.php';
+  }
+  private function list_ingredients(){
+    global $wpdb;
+    $query = "SELECT * FROM {$this->table_ingredients} ORDER BY name ASC";
+    return $wpdb->get_results($query, OBJECT);
   }
 }
 

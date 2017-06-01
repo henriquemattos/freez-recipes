@@ -10,8 +10,19 @@ jQuery(document).ready(function(){
     newRow.find('.btn-add-recipe').removeClass('btn-sucess btn-add-recipe').
       addClass('btn-warning btn-remove-recipe').find('.glyphicon').removeClass('glyphicon-plus').
       addClass('glyphicon-minus');
-    newRow.find('.input-recipe-ingredient').val('');
-    newRow.appendTo(tableBody.parent());
+    newRow.find('span.select2').remove();
+    newRow.find('.input-recipe-amount').val('');
+    newRow.appendTo(tableBody.parent()).find('select.input-recipe-ingredient').
+      removeClass('select2-hidden-accessible').removeAttr('aria-hidden').
+      removeAttr('tabindex').select2({
+        placeholder: 'Selecione um ingrediente',
+        allowClear: true
+    });;
+  });
+
+  jQuery('select.input-recipe-ingredient').select2({
+    placeholder: 'Selecione um ingrediente',
+    allowClear: true
   });
 
   // remove table row
@@ -23,10 +34,10 @@ jQuery(document).ready(function(){
     window.location.reload(false);
   });
 
-  jQuery('form#save-ingredient').on('submit', function(e){
+  jQuery('form').on('submit', function(e){
     e.preventDefault();
     var data = {
-      'action': 'set_ingredients',
+      'action': jQuery(this).attr('id'),
       'nonce': ajax_object.nonce,
       'data': jQuery(this).serializeJSON()
     };
