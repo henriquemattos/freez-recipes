@@ -154,6 +154,9 @@ class Freez_Recipes {
     wp_die();
   }
   public function get_all_recipes(){
+    global $wpdb;
+    $query = "SELECT id_recipes, title FROM {$this->table_recipes} ORDER BY id_recipes ASC";
+    $results = $wpdb->get_results($query, OBJECT);
     include_once 'template-recipe-list.php';
   }
   public function get_single_recipe(){
