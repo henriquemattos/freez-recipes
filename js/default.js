@@ -42,6 +42,7 @@ jQuery(document).ready(function(){
       },
       complete: function(jqXHR, textStatus){
         window.scrollTo(0, 0);
+        jQuery('#input-ingredient').val('');
       },
       error: function(jqXHR, textStatus, errorThrown){
         var msg = '<p>' + textStatus + ': ' + errorThrown + '</p>';
