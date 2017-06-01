@@ -1,5 +1,10 @@
 <div class="container-fluid">
-  <h2>Lista de Ingredientes</h2>
+  <h2>
+    Lista de Ingredientes
+    <button id="button-refresh-ingredients" type="button" class="btn btn-xs btn-success">
+      <span class="glyphicon glyphicon-refresh"></span>
+    </button>
+  </h2>
   <table class="table table-bordered table-striped">
     <thead>
       <tr>

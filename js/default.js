@@ -19,6 +19,10 @@ jQuery(document).ready(function(){
     jQuery(this).parent().parent().remove();
   });
 
+  jQuery('#button-refresh-ingredients').live('click', function(){
+    window.location.reload(false);
+  });
+
   jQuery('form#save-ingredient').on('submit', function(e){
     e.preventDefault();
     var data = {
