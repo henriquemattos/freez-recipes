@@ -1,17 +1,26 @@
-<div class="container-fluid">
-  <h2>Adicionar Ingrediente</h2>
-  <div id="alert"></div>
-  <form id="set_ingredients" class="form-horizontal">
-    <div class="form-group">
-      <label for="input-ingredient" class="col-sm-2 control-label">Ingrediente:</label>
-      <div class="col-sm-10">
-        <input type="text" name="input-ingredient" id="input-ingredient" class="form-control" placeholder="Ingrediente" />
-      </div>
-    </div>
-    <div class="form-group">
-      <div class="col-sm-offset-2 col-sm-10">
-        <button type="submit" class="btn btn-info">Cadastrar Ingrediente</button>
-      </div>
-    </div>
-  </form>
+<div id="freez-recipes-metaboxes">
+  <?php if(count($ingredients) > 0) : ?>
+    <?php foreach($ingredients as $key => $value) : ?>
+      <p class="freez-recipes-ingredients">
+        <label class="screen-reader-text" for="recipe-ingredient-name">Adicionar novo ingrediente</label>
+        <input type="text" name="ingredient[]" class="newtag form-input-tip ui-autocomplete-input" value="<?php echo $key; ?>" />
+        <input type="text" name="amount[]" class="newtag form-input-tip ui-autocomplete-input" value="<?php echo $value; ?>" />
+      </p>
+    <?php endforeach; ?>
+  <?php endif; ?>
+  <p class="freez-recipes-ingredients">
+    <label class="screen-reader-text" for="recipe-ingredient-name">Adicionar novo ingrediente</label>
+    <input type="text" name="ingredient[]" class="newtag form-input-tip ui-autocomplete-input" placeholder="Ingrediente" />
+    <input type="text" name="amount[]" class="newtag form-input-tip ui-autocomplete-input" placeholder="Quantidade" />
+  </p>
 </div>
+<p><button id="freez-recipes-add-ingredient" type="button" class="button">Novo Ingrediente</button></p>
+<script type="text/javascript">
+jQuery(document).ready(function(){
+  jQuery('#freez-recipes-add-ingredient').on('click', function(){
+    var newRow = jQuery('#freez-recipes-metaboxes .freez-recipes-ingredients').first().clone();
+    newRow.find('input[type=text]').val('');
+    newRow.appendTo(jQuery('#freez-recipes-metaboxes'));
+  });
+});
+</script>
