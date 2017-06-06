@@ -82,7 +82,7 @@ class Freez_Recipes {
         $ingredients[$key] = $value[0];
       }
     }
-    include_once 'template-ingredient-add.php';
+    include_once 'template-ingredient-metabox.php';
   }
   public function freez_create_taxonomy(){
     register_taxonomy(
