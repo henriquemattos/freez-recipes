@@ -18,6 +18,20 @@ class Freez_Recipes {
     add_action('init', array($this, 'freez_create_post_type'));
     add_action('add_meta_boxes', array($this, 'freez_add_ingredients_metaboxes'));
     add_action('save_post', array($this, 'freez_save_ingredients_metaboxes'));
+    register_activation_hook(__FILE__, array($this, 'install'));
+  }
+  public function install(){
+    update_option(
+      'freez_recipes_ingredients_measures',
+      array(
+        'miligrama(s)',
+        'grama(s)',
+        'kilograma(s)',
+        'mililitro(s)',
+        'litro(s)',
+        'xícara(s)'
+      )
+    );
   }
   public function freez_save_ingredients_metaboxes($post_id){
     /*
