@@ -14,24 +14,41 @@ Domain Path: /languages
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 class Freez_Recipes {
   public function __construct(){
-    add_action('init', array($this, 'freez_create_taxonomy'));
     add_action('init', array($this, 'freez_create_post_type'));
+    add_action('init', array($this, 'freez_create_taxonomy'));
+    add_action('init', array($this, 'freez_enqueue_scripts'));
     add_action('add_meta_boxes', array($this, 'freez_add_ingredients_metaboxes'));
     add_action('save_post', array($this, 'freez_save_ingredients_metaboxes'));
     register_activation_hook(__FILE__, array($this, 'install'));
+    register_deactivation_hook(__FILE__, array($this, 'uninstall'));
+
+    add_action('wp_ajax_get_ingredients', array($this, 'get_ingredients'));
+    add_action('wp_ajax_nopriv_get_ingredients', array($this, 'get_ingredients'));
+  }
+  public function freez_enqueue_scripts(){
+    wp_enqueue_script(
+      'freez-recipes-js',
+      plugin_dir_url(__FILE__) . 'js/default.js',
+      array('jquery', 'jquery-ui-autocomplete', 'jquery-ui-position', 'jquery-ui-widget'),
+      '1.0.0',
+      true
+    );
+    wp_localize_script('freez-recipes-js', 'ajax_object', array('ajax_url' => admin_url('admin-ajax.php'),'nonce' => wp_create_nonce('freez_recipes_get_ingredients_nonce')));
   }
   public function install(){
     update_option(
       'freez_recipes_ingredients_measures',
       array(
-        'miligrama(s)',
-        'grama(s)',
-        'kilograma(s)',
-        'mililitro(s)',
-        'litro(s)',
-        'xícara(s)'
+        'mg',
+        'g',
+        'kg',
+        'ml',
+        'l',
       )
     );
+  }
+  public function uninstall(){
+    delete_option('freez_recipes_ingredients_measures');
   }
   public function freez_save_ingredients_metaboxes($post_id){
     /*
@@ -71,58 +88,83 @@ class Freez_Recipes {
   }
   public function freez_add_ingredients_metaboxes(){
     global $wp_meta_boxes;
-    add_meta_box('freez_recipes_ingredients', __('Ingredientes'), array($this, 'freez_ingredients_metaboxes_html'), 'freez_recipes');
+    add_meta_box(
+      'freez_recipes_ingredients',
+      __('Ingredientes'),
+      array($this, 'freez_ingredients_metaboxes_html'),
+      'freez_recipes'
+    );
+  }
+  public function get_ingredients(){
+    $terms = get_terms( array(
+      'taxonomy' => 'freez_ingredients',
+      'hide_empty' => false
+    ));
+    print json_encode($terms);
+    wp_die();
   }
   public function freez_ingredients_metaboxes_html(){
     // Add an nonce field so we can check for it later.
     wp_nonce_field('freez_recipes_ingredients', 'freez_recipes_ingredients_nonce');
-    foreach(get_post_meta(get_the_ID()) as $key => $value){
-      $strpos = strpos($key, '_edit_');
-      if($strpos !== 0){
-        $ingredients[$key] = $value[0];
-      }
-    }
+
+    $measures = get_option('freez_recipes_ingredients_measures');
     include_once 'template-ingredient-metabox.php';
   }
   public function freez_create_taxonomy(){
-    register_taxonomy(
-      'freez_recipe_category',
-      'freez_recipes',
-      array('labels' => array(
-        'name' => __('Categories'),
-        'singular_name' => __('Category'),
-        'all_items' => __('All Categories'),
-        'edit_item' => __('Edit Category'),
-        'view_item' => __('View Category'),
-        'add_new_item' => __('Add New Category'),
-        'new_item_name' => __('New Category Name'),
-      ),
-      'description' => __('Freez Categorias de Receitas')
-    ));
+  	$labels = array(
+  		'name'                       => _x( 'Ingredientes', 'taxonomy general name', 'freez-recipes' ),
+  		'singular_name'              => _x( 'Ingrediente', 'taxonomy singular name', 'freez-recipes' ),
+  		'search_items'               => __( 'Buscar Ingredientes', 'freez-recipes' ),
+  		'popular_items'              => __( 'Ingredientes Populares', 'freez-recipes' ),
+  		'all_items'                  => __( 'Todos os Ingredientes', 'freez-recipes' ),
+  		'parent_item'                => null,
+  		'parent_item_colon'          => null,
+  		'edit_item'                  => __( 'Editar Ingrediente', 'freez-recipes' ),
+  		'update_item'                => __( 'Atualizar Ingrediente', 'freez-recipes' ),
+  		'add_new_item'               => __( 'Adicionar Novo Ingrediente', 'freez-recipes' ),
+  		'new_item_name'              => __( 'Nome do Novo Ingrediente', 'freez-recipes' ),
+  		'separate_items_with_commas' => __( 'Separe ingredientes com vírgula', 'freez-recipes' ),
+  		'add_or_remove_items'        => __( 'Adicione ou remova ingredientes', 'freez-recipes' ),
+  		'choose_from_most_used'      => __( 'Escolha nos ingredientes mais utilizados', 'freez-recipes' ),
+  		'not_found'                  => __( 'Nenhum ingrediente encontrado.', 'freez-recipes' ),
+  		'menu_name'                  => __( 'Ingredientes', 'freez-recipes' ),
+  	);
+
+  	$args = array(
+  		'hierarchical'          => false,
+  		'labels'                => $labels,
+  		'show_ui'               => true,
+  		'show_admin_column'     => true,
+  		'update_count_callback' => '_update_post_term_count',
+  		'query_var'             => true,
+      'meta_box_cb'           => false,
+  		'rewrite'               => array('slug' => 'freez_ingredients')
+  	);
+
+  	register_taxonomy('freez_ingredients', 'freez_recipes', $args);
   }
   public function freez_create_post_type(){
     register_post_type('freez_recipes',
       array(
         'labels' => array(
-          'name' => __('Receitas'),
+          'name'          => __('Receitas'),
           'singular_name' => __('Receita'),
-          'add_new_item' => __('Adicionar nova receita'),
-          'edit_item' => __('Editar receita'),
-          'new_item' => __('Nova receita'),
-          'view_item' => __('Ver receita'),
-          'view_items' => __('Ver receitas'),
-          'search_items' => __('Buscar receitas'),
-          'not_found' => __('Nenhuma receita encontrada')
+          'add_new_item'  => __('Adicionar nova receita'),
+          'edit_item'     => __('Editar receita'),
+          'new_item'      => __('Nova receita'),
+          'view_item'     => __('Ver receita'),
+          'view_items'    => __('Ver receitas'),
+          'search_items'  => __('Buscar receitas'),
+          'not_found'     => __('Nenhuma receita encontrada')
         ),
-        'description' => __('Receitas personalizadas por Freez'),
-        'public' => true,
+        'description'         => __('Receitas personalizadas por Freez'),
+        'public'              => true,
         'exclude_from_search' => false,
-        'menu_position' => 5,
-        'menu_icon' => 'dashicons-clipboard',
-        'has_archive' => true,
-        'rewrite' => array('slug' => 'receitas'),
-        'support' => array('title', 'editor', 'author', 'thumbnail', 'custom-fields', 'revisions'),
-        'taxonomies' => array('categoria_receita')
+        'menu_position'       => 5,
+        'menu_icon'           => 'dashicons-clipboard',
+        'has_archive'         => true,
+        'rewrite'             => array('slug' => 'receitas'),
+        'support'             => array('title', 'editor', 'author', 'thumbnail', 'custom-fields', 'revisions')
       )
     );
   }
