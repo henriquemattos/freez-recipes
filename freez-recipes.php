@@ -22,6 +22,8 @@ class Freez_Recipes {
     register_activation_hook(__FILE__, array($this, 'install'));
     register_deactivation_hook(__FILE__, array($this, 'uninstall'));
 
+    add_shortcode('freezrecipes', array($this, 'freez_recipes_shortcode'));
+
     add_action('wp_ajax_get_ingredients', array($this, 'get_ingredients'));
     add_action('wp_ajax_nopriv_get_ingredients', array($this, 'get_ingredients'));
   }
@@ -180,6 +182,35 @@ class Freez_Recipes {
         'support'             => array('title', 'editor', 'author', 'thumbnail', 'custom-fields', 'revisions')
       )
     );
+  }
+  public function freez_recipes_shortcode($atts){
+    $str = '<div class="recipes-list">';
+    $checkbox = '';
+    $link_begin = '';
+    $link_end = '';
+    if(isset($atts['id'])){
+      $list = explode(',', $atts['id']);
+      foreach($list as $id){
+        $str .= '<article id="recipes-' . $id . '" class="recipes-' . $id . ' post type-recipe">';
+        $recipe = get_post($id, 'OBJECT');
+        $link = get_post_permalink($id);
+        if($atts['link'] !== "false"){
+          $link = get_post_permalink($id);
+          $link_begin = '<a href="' . $link . '">';
+          $link_end = '</a>';
+        }
+        if($atts['checkbox'] !== "false"){
+          $checkbox = '<input type="checkbox" name="checkbox-recipes-' . $id . '" />';
+        }
+        $str .= "<h3>{$checkbox}{$link_begin}{$recipe->post_title}{$link_end}</h3>";
+        $str .= '</article>';
+      }
+    }
+    if($atts['checkboxes'] !== "false"){
+      $str .= '<div><button type="button">Imprimir lista de compras</button></div>';
+    }
+    $str .= '</div>';
+    return $str;
   }
 }
 
