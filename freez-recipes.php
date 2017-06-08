@@ -75,15 +75,25 @@ class Freez_Recipes {
         return $post_id;
     }
     // @TODO Check the user's permissions.
-
+    $meta_value = array();
     foreach($_POST['ingredient'] as $key => $value){
-      if($_POST['ingredient']){
+      if(isset($_POST['ingredient']) && !empty($value)){
         // Sanitize the user input.
-        $ingredient = sanitize_text_field($value);
+        $ingredient = ucwords(strtolower(sanitize_text_field($value)));
+        $this->add_ingredient($ingredient);
         $amount = sanitize_text_field($_POST['amount'][$key]);
-        // Update the meta field.
-        update_post_meta($post_id, $ingredient, $amount);
+        $measure = strtolower(sanitize_text_field($_POST['measure'][$key]));
+        array_push($meta_value, array('ingredient' => $ingredient, 'amount' => $amount, 'measure' => $measure));
       }
+    }
+    // Update the meta field.
+    update_post_meta($post_id, 'freez_recipes_ingredients', json_encode($meta_value, JSON_UNESCAPED_UNICODE));
+  }
+  public function add_ingredient($ingredient){
+    if(get_term_by('name', $ingredient)){
+      return true;
+    } else {
+      wp_insert_term($ingredient, 'freez_ingredients');
     }
   }
   public function freez_add_ingredients_metaboxes(){
@@ -95,6 +105,13 @@ class Freez_Recipes {
       'freez_recipes'
     );
   }
+  public function freez_ingredients_metaboxes_html($post){
+    // Add an nonce field so we can check for it later.
+    wp_nonce_field('freez_recipes_ingredients', 'freez_recipes_ingredients_nonce');
+    $postmeta = json_decode(get_post_meta($post->ID, 'freez_recipes_ingredients', true));
+    $measures = get_option('freez_recipes_ingredients_measures');
+    include_once 'template-ingredient-metabox.php';
+  }
   public function get_ingredients(){
     $terms = get_terms( array(
       'taxonomy' => 'freez_ingredients',
@@ -103,31 +120,24 @@ class Freez_Recipes {
     print json_encode($terms);
     wp_die();
   }
-  public function freez_ingredients_metaboxes_html(){
-    // Add an nonce field so we can check for it later.
-    wp_nonce_field('freez_recipes_ingredients', 'freez_recipes_ingredients_nonce');
-
-    $measures = get_option('freez_recipes_ingredients_measures');
-    include_once 'template-ingredient-metabox.php';
-  }
   public function freez_create_taxonomy(){
   	$labels = array(
-  		'name'                       => _x( 'Ingredientes', 'taxonomy general name', 'freez-recipes' ),
-  		'singular_name'              => _x( 'Ingrediente', 'taxonomy singular name', 'freez-recipes' ),
-  		'search_items'               => __( 'Buscar ingredientes', 'freez-recipes' ),
-  		'popular_items'              => __( 'Ingredientes populares', 'freez-recipes' ),
-  		'all_items'                  => __( 'Todos os ingredientes', 'freez-recipes' ),
+  		'name'                       => _x('Ingredientes', 'taxonomy general name', 'freez-recipes'),
+  		'singular_name'              => _x('Ingrediente', 'taxonomy singular name', 'freez-recipes'),
+  		'search_items'               => __('Buscar ingredientes', 'freez-recipes'),
+  		'popular_items'              => __('Ingredientes populares', 'freez-recipes'),
+  		'all_items'                  => __('Todos os ingredientes', 'freez-recipes'),
   		'parent_item'                => null,
   		'parent_item_colon'          => null,
-  		'edit_item'                  => __( 'Editar ingrediente', 'freez-recipes' ),
-  		'update_item'                => __( 'Atualizar ingrediente', 'freez-recipes' ),
-  		'add_new_item'               => __( 'Adicionar novo ingrediente', 'freez-recipes' ),
-  		'new_item_name'              => __( 'Nome do novo ingrediente', 'freez-recipes' ),
-  		'separate_items_with_commas' => __( 'Separe ingredientes com vírgula', 'freez-recipes' ),
-  		'add_or_remove_items'        => __( 'Adicione ou remova ingredientes', 'freez-recipes' ),
-  		'choose_from_most_used'      => __( 'Escolha nos ingredientes mais utilizados', 'freez-recipes' ),
-  		'not_found'                  => __( 'Nenhum ingrediente encontrado.', 'freez-recipes' ),
-  		'menu_name'                  => __( 'Ingredientes', 'freez-recipes' ),
+  		'edit_item'                  => __('Editar ingrediente', 'freez-recipes'),
+  		'update_item'                => __('Atualizar ingrediente', 'freez-recipes'),
+  		'add_new_item'               => __('Adicionar novo ingrediente', 'freez-recipes'),
+  		'new_item_name'              => __('Nome do novo ingrediente', 'freez-recipes'),
+  		'separate_items_with_commas' => __('Separe ingredientes com vírgula', 'freez-recipes'),
+  		'add_or_remove_items'        => __('Adicione ou remova ingredientes', 'freez-recipes'),
+  		'choose_from_most_used'      => __('Escolha nos ingredientes mais utilizados', 'freez-recipes'),
+  		'not_found'                  => __('Nenhum ingrediente encontrado.', 'freez-recipes'),
+  		'menu_name'                  => __('Ingredientes', 'freez-recipes'),
   	);
 
   	$args = array(
