@@ -48,9 +48,11 @@ class Freez_Recipes {
         'l',
       )
     );
+    flush_rewrite_rules();
   }
   public function uninstall(){
     delete_option('freez_recipes_ingredients_measures');
+    flush_rewrite_rules();
   }
   public function freez_save_ingredients_metaboxes($post_id){
     /*
