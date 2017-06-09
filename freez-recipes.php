@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Freez Recipes
-Plugin URI:  https://www.freez.com.br
+Plugin URI:  http://www.freez.com.br
 Description: Create recipes, print PDF versions for customers and filter totals.
 Version:     1.0.0
 Author:      Freez
-Author URI:  https://www.freez.com.br
+Author URI:  http://www.freez.com.br
 License:     GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: freezrecipes
@@ -19,13 +19,15 @@ class Freez_Recipes {
     add_action('init', array($this, 'freez_enqueue_scripts'));
     add_action('add_meta_boxes', array($this, 'freez_add_ingredients_metaboxes'));
     add_action('save_post', array($this, 'freez_save_ingredients_metaboxes'));
-    register_activation_hook(__FILE__, array($this, 'install'));
-    register_deactivation_hook(__FILE__, array($this, 'uninstall'));
+    add_action('wp_ajax_get_ingredients', array($this, 'get_ingredients'));
+    add_action('wp_ajax_nopriv_get_ingredients', array($this, 'get_ingredients'));
+
+    add_filter('template_include', array($this, 'freez_recipes_template_include'), 1);
 
     add_shortcode('freezrecipes', array($this, 'freez_recipes_shortcode'));
 
-    add_action('wp_ajax_get_ingredients', array($this, 'get_ingredients'));
-    add_action('wp_ajax_nopriv_get_ingredients', array($this, 'get_ingredients'));
+    register_activation_hook(__FILE__, array($this, 'install'));
+    register_deactivation_hook(__FILE__, array($this, 'uninstall'));
   }
   public function freez_enqueue_scripts(){
     wp_enqueue_script(
@@ -184,6 +186,20 @@ class Freez_Recipes {
         'support'             => array('title', 'editor', 'author', 'thumbnail', 'custom-fields', 'revisions')
       )
     );
+  }
+  public function freez_recipes_template_include($template_path){
+    if(get_post_type() == 'freez_recipes'){
+      if(is_single()){
+        // checks if the file exists in the theme first,
+        // otherwise serve the file from the plugin
+        if($theme_file = locate_template(array('single-freez_recipes.php'))){
+          $template_path = $theme_file;
+        } else {
+          $template_path = plugin_dir_path(__FILE__) . 'single-freez_recipes.php';
+        }
+      }
+    }
+    return $template_path;
   }
   public function freez_recipes_shortcode($atts){
     $str = '<div class="recipes-list">';
