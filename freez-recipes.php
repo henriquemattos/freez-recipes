@@ -18,10 +18,13 @@ class Freez_Recipes {
     add_action('init', array($this, 'freez_create_taxonomy'));
     add_action('init', array($this, 'freez_enqueue_scripts'));
     add_action('add_meta_boxes', array($this, 'freez_add_ingredients_metaboxes'));
+    add_action('add_meta_boxes', array($this, 'freez_add_shortcode_metaboxes'));
     add_action('save_post', array($this, 'freez_save_ingredients_metaboxes'));
     add_action('wp_ajax_get_ingredients', array($this, 'get_ingredients'));
     add_action('wp_ajax_nopriv_get_ingredients', array($this, 'get_ingredients'));
 
+    add_filter('manage_posts_columns', array($this, 'freez_recipes_columns_shortcode'));
+    add_action('manage_posts_custom_column', array($this, 'freez_recipes_columns_shortcode_content'), 10, 2);
     add_filter('template_include', array($this, 'freez_recipes_template_include'), 1);
 
     add_shortcode('freezrecipes', array($this, 'freez_recipes_shortcode'));
@@ -43,7 +46,7 @@ class Freez_Recipes {
     update_option(
       'freez_recipes_ingredients_measures',
       array(
-        'un'
+        'un',
         'mg',
         'g',
         'kg',
@@ -127,6 +130,29 @@ class Freez_Recipes {
     ));
     print json_encode($terms);
     wp_die();
+  }
+  public function freez_add_shortcode_metaboxes(){
+    global $wp_meta_boxes;
+    add_meta_box(
+      'freez_recipes_shortcode',
+      __('Shortcode'),
+      array($this, 'freez_shortcode_metaboxes_html'),
+      'freez_recipes',
+      'side',
+      'high'
+    );
+  }
+  public function freez_shortcode_metaboxes_html($post){
+    include_once 'template-shortcode-metabox.php';
+  }
+  public function freez_recipes_columns_shortcode($defaults){
+    $defaults['shortcode'] = 'Shortcode';
+    return $defaults;
+  }
+  public function freez_recipes_columns_shortcode_content($column_name, $post_ID){
+    if($column_name == 'shortcode'){
+      echo "[freezrecipes id=\"{$post_ID}\"]";
+    }
   }
   public function freez_create_taxonomy(){
   	$labels = array(
