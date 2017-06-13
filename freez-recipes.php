@@ -43,11 +43,13 @@ class Freez_Recipes {
     update_option(
       'freez_recipes_ingredients_measures',
       array(
+        'un'
         'mg',
         'g',
         'kg',
         'ml',
         'l',
+        'porção'
       )
     );
     flush_rewrite_rules();
