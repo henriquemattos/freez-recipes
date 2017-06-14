@@ -257,7 +257,7 @@ class Freez_Recipes {
         if($atts['checkbox'] !== "false"){
           $checkbox = '<input type="checkbox" value="' . $id . '" name="checkbox-recipes[]" class="freez-recipes-checkboxes" />';
         }
-        $str .= "<h3>{$checkbox}{$link_begin}{$recipe->post_title}{$link_end}</h3>";
+        $str .= "<p>{$checkbox}{$link_begin}{$recipe->post_title}{$link_end}</p>";
         $str .= '</article>';
       }
     }
