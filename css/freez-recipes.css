@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css?family=Lobster|PT+Sans');
+body, .tips li span {
+  font-family: "PT Sans", "Trebuchet MS", Helvetica, sans-serif;
+}
+body, .tips li span {
+  color: #666;
+}
+.header h1, .tips h3 strong, .tips li {
+  color: #e01d36;
+}
+.header h1, .tips li {
+  font-family: "Lobster", "PT Sans", Verdana;
+}
+.header img {
+  width: 100%;
+  max-width: 100%;
+}
+.tips li {
+  font-size: 2em;
+  line-height: 100%;
+  padding-bottom: 1em;
+}
+.tips li span {
+  font-size: .625em;
+}
+.table thead {
+  background: #e01d36;
+  color: #fff;
+}
+
+.tips h3 {
+  margin-bottom: 3em;
+}

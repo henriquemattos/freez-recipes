@@ -12,6 +12,12 @@ Text Domain: freezrecipes
 Domain Path: /languages
 */
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
+// include autoloader
+require_once 'dompdf/autoload.inc.php';
+
+// reference the Dompdf namespace
+use Dompdf\Dompdf;
+
 class Freez_Recipes {
   public function __construct(){
     add_action('init', array($this, 'freez_create_post_type'));
@@ -22,6 +28,8 @@ class Freez_Recipes {
     add_action('save_post', array($this, 'freez_save_ingredients_metaboxes'));
     add_action('wp_ajax_get_ingredients', array($this, 'get_ingredients'));
     add_action('wp_ajax_nopriv_get_ingredients', array($this, 'get_ingredients'));
+
+    add_action('admin_action_freez_recipes_print', array($this, 'freez_recipes_print'));
 
     add_filter('manage_posts_columns', array($this, 'freez_recipes_columns_shortcode'));
     add_action('manage_posts_custom_column', array($this, 'freez_recipes_columns_shortcode_content'), 10, 2);
@@ -230,7 +238,8 @@ class Freez_Recipes {
     return $template_path;
   }
   public function freez_recipes_shortcode($atts){
-    $str = '<div class="recipes-list">';
+    $str = '<div class="recipes-list"><form action="' . admin_url('admin.php') .'" method="POST">';
+    $str .= '<input type="hidden" name="action" value="freez_recipes_print" />';
     $checkbox = '';
     $link_begin = '';
     $link_end = '';
@@ -246,17 +255,113 @@ class Freez_Recipes {
           $link_end = '</a>';
         }
         if($atts['checkbox'] !== "false"){
-          $checkbox = '<input type="checkbox" name="checkbox-recipes-' . $id . '" />';
+          $checkbox = '<input type="checkbox" value="' . $id . '" name="checkbox-recipes[]" class="freez-recipes-checkboxes" />';
         }
         $str .= "<h3>{$checkbox}{$link_begin}{$recipe->post_title}{$link_end}</h3>";
         $str .= '</article>';
       }
     }
     if($atts['checkboxes'] !== "false"){
-      $str .= '<div><button type="button">Imprimir lista de compras</button></div>';
+      $str .= '<div><button id="freez-recipes-pdf-print" type="submit">Imprimir lista de compras</button></div>';
     }
-    $str .= '</div>';
+    $str .= '</form></div>';
     return $str;
+  }
+  public function freez_recipes_print(){
+    if(isset($_POST['checkbox-recipes'])){
+      $ingredients = array();
+      foreach($_POST['checkbox-recipes'] as $id){
+        // $recipe = get_post($id, 'OBJECT');
+        $postmeta = json_decode(get_post_meta($id, 'freez_recipes_ingredients', true));
+        if(count($postmeta) > 0){
+          foreach($postmeta as $item){
+            if(array_key_exists($item->ingredient, $ingredients)){
+              $ingredients[$item->ingredient]['amount'] = $ingredients[$item->ingredient]['amount'] + $item->amount;
+            } else {
+              $ingredients += array($item->ingredient => array(
+                'name' => $item->ingredient,
+                'amount' => $item->amount,
+                'measure' => $item->measure
+              ));
+            }
+          }
+        }
+      }
+      // $pdf_html = include_once plugin_dir_path(__FILE__) . 'template-recipes-pdf.php';
+      $pdf_html = $this->generate_pdf_html($ingredients);
+
+      // instantiate and use the dompdf class
+      $dompdf = new Dompdf();
+      $dompdf->loadHtml($pdf_html);
+
+      // (Optional) Setup the paper size and orientation
+      $dompdf->setPaper('A4', 'landscape');
+
+      // Render the HTML as PDF
+      $dompdf->render();
+
+      // Output the generated PDF to Browser
+      $dompdf->stream();
+    }
+    return true;
+  }
+  public function generate_pdf_html($ingredients){
+    $html = '<!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Lista de Compras da Semana</title>
+        <link href="' . plugin_dir_url(__FILE__) . 'css/bootstrap.min.css" rel="stylesheet">
+        <link href="' . plugin_dir_url(__FILE__) . 'css/freez-recipes.css" rel="stylesheet">
+      </head>
+      <body>
+        <div class="row">
+          <section class="header container">
+            <h1 class="col-sm-10">Lista de Compras | Semana 05 a 09 de Junho</h1>
+            <div class="col-sm-2">
+              <img src="' . plugin_dir_url(__FILE__) . 'img/logo-home-chefs.png" alt="Home Chefs" title="Home Chefs" />
+            </div>
+          </section>
+          <section class="tips container">
+            <h2>5 Dicas Mágicas Para Usar Melhor a Sua Lista de Compras:</h2>
+            <ol>
+              <li><span>Antes de usar a lista, conheça as receitas da semana e seu passo a passo. Se não for preparar o Cardápio completo, avalie e decida quais refeições irá cozinhar e lembre-se de riscar da lista os ingredientes ou quantidades que não for utilizar.</span></li>
+              <li><span>Outro ponto a avaliar são os rendimentos de cada refeição. Em alguns casos, por exemplo,  a receita está planejada para render 2 porções. Se você quiser 4 porções, deve ter o dobro dos ingredientes.</span></li>
+              <li><span>Verifique quais dos ingredientes já possui em casa e risque da lista antes de ir ao supermercado.Em alguns casos, você usará apenas uma fração de um ingrediente. Porém, se não tiver a fração suficiente em casa, precisará comprar o ingrediente em sua porção integral. São exemplos de ingredientes fracionados que muitas vezes você já vai ter: Azeite, Óleo, Manteiga, Sal, Pimenta do Reino...</span></li>
+              <li><span>Abrindo este arquivo PDF no Adobe Acrobat Reader, você pode realçar ou riscar ingredientes selecionando o texto e clicando com o botão direito do mouse. Depois é só salvar a sua cópia editada. Dá pra inserir notas também.</span></li>
+              <li><span>Defina qual é a melhor forma de levar a lista para o mercado. Você pode baixar este arquivo no seu celular ou abrir no computador e tirar uma foto da tela (eu faço isso!) ou imprimir.</span></li>
+            </ol>
+            <div class="col-sm-8 col-sm-offset-2">
+              <h3><strong><i>VALE LEMBRAR:</i></strong> Nas primeiras semanas, as compras poderão ser maiores, em função dos ingredientes fracionados e temperos. Você vai perceber que, com o passar do tempo, começará a ter muitos deles em casa, pois sobrarão das receitas anteriores e não são perecíveis.</h3>
+            </div>
+          </section>
+          <section class="ingredients container">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <td class="text-center">Ingredientes</td>
+                  <td class="text-center">Quantidade</td>
+                  <td class="text-left">Medida</td>
+                </tr>
+              </thead>
+              <tfoot></tfoot>
+              <tbody>';
+              foreach($ingredients as $list_item) {
+                $html .= '<tr>
+                  <td class="text-center">' . $list_item['name'] . '</td>
+                  <td class="text-center">' . $list_item['amount'] . '</td>
+                  <td class="text-left">' . $list_item['measure'] . '</td>
+                </tr>';
+              }
+              $html .= '</tbody>
+            </table>
+          </section>
+        </div>
+      </body>
+    </html>';
+    return $html;
   }
 }
 
