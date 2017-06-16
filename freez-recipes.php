@@ -26,14 +26,18 @@ class Freez_Recipes {
     add_action('add_meta_boxes', array($this, 'freez_add_ingredients_metaboxes'));
     add_action('add_meta_boxes', array($this, 'freez_add_shortcode_metaboxes'));
     add_action('save_post', array($this, 'freez_save_ingredients_metaboxes'));
+
     add_action('wp_ajax_get_ingredients', array($this, 'get_ingredients'));
     add_action('wp_ajax_nopriv_get_ingredients', array($this, 'get_ingredients'));
 
+    add_action('wp_ajax_freez_recipes_view', array($this, 'freez_recipes_view'));
+    add_action('wp_ajax_nopriv_freez_recipes_view', array($this, 'freez_recipes_view'));
+
     add_action('admin_action_freez_recipes_print', array($this, 'freez_recipes_print'));
 
+    add_filter('template_include', array($this, 'freez_recipes_template_include'), 1);
     add_filter('manage_posts_columns', array($this, 'freez_recipes_columns_shortcode'));
     add_action('manage_posts_custom_column', array($this, 'freez_recipes_columns_shortcode_content'), 10, 2);
-    add_filter('template_include', array($this, 'freez_recipes_template_include'), 1);
 
     add_shortcode('freezrecipes', array($this, 'freez_recipes_shortcode'));
 
@@ -238,8 +242,8 @@ class Freez_Recipes {
     return $template_path;
   }
   public function freez_recipes_shortcode($atts){
-    $str = '<div class="recipes-list"><form action="' . admin_url('admin.php') .'" method="POST">';
-    $str .= '<input type="hidden" name="action" value="freez_recipes_print" />';
+    $str = '<div class="recipes-list"><form id="freez-recipes-form-view-print" action="' . admin_url('admin.php') .'" method="POST">';
+    $str .= '<input type="hidden" id="freez-recipes-form-action" name="action" value="freez_recipes_print" />';
     $checkbox = '';
     $link_begin = '';
     $link_end = '';
@@ -262,12 +266,47 @@ class Freez_Recipes {
       }
     }
     if($atts['checkboxes'] !== "false"){
-      $str .= '<div><button id="freez-recipes-pdf-print" type="submit">Imprimir lista de compras</button></div>';
+      $str .= '<div>';
+      $str .= '<button id="freez-recipes-pdf-view" name="freez-recipes-pdf-view" type="button">Ver Lista</button> ';
+      $str .= '<button id="freez-recipes-pdf-print" name="freez-recipes-pdf-print" type="submit">Salvar PDF</button>';
+      $str .= '<p><small>* Para ver a lista de compras você deve permitir que janelas pop-ups sejam abertas pelo navegador</small></p>';
+      $str .= '</div>';
     }
     $str .= '</form></div>';
     return $str;
   }
+  public function freez_recipes_view(){
+    $pdf_html = $this->generate_pdf_html();
+    wp_send_json(array(
+      'html' => $pdf_html
+    ));
+    wp_die();
+  }
   public function freez_recipes_print(){
+    $pdf_html = $this->generate_pdf_html();
+
+    // instantiate and use the dompdf class
+    $dompdf = new Dompdf();
+    $dompdf->loadHtml($pdf_html);
+
+    // (Optional) Setup the paper size and orientation
+    $dompdf->setPaper('A4', 'landscape');
+
+    // Render the HTML as PDF
+    $dompdf->render();
+
+    // Output the generated PDF to Browser
+    $dompdf->stream();
+    return true;
+  }
+  public function generate_pdf_html(){
+    $checkboxes = array();
+    if(isset($_POST['data'])){
+      // $data = explode('&', urldecode($_POST['data']));
+      $data = json_decode(stripslashes(urldecode($_POST['data'])));
+      print_r($data);
+      exit;
+    }
     if(isset($_POST['checkbox-recipes'])){
       $ingredients = array();
       foreach($_POST['checkbox-recipes'] as $id){
@@ -287,81 +326,63 @@ class Freez_Recipes {
           }
         }
       }
-      // $pdf_html = include_once plugin_dir_path(__FILE__) . 'template-recipes-pdf.php';
-      $pdf_html = $this->generate_pdf_html($ingredients);
-
-      // instantiate and use the dompdf class
-      $dompdf = new Dompdf();
-      $dompdf->loadHtml($pdf_html);
-
-      // (Optional) Setup the paper size and orientation
-      $dompdf->setPaper('A4', 'landscape');
-
-      // Render the HTML as PDF
-      $dompdf->render();
-
-      // Output the generated PDF to Browser
-      $dompdf->stream();
+      $html = '<!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta http-equiv="X-UA-Compatible" content="IE=edge">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Lista de Compras da Semana</title>
+          <link href="' . plugin_dir_url(__FILE__) . 'css/bootstrap.min.css" rel="stylesheet">
+          <link href="' . plugin_dir_url(__FILE__) . 'css/freez-recipes.css" rel="stylesheet">
+        </head>
+        <body>
+          <div class="row">
+            <section class="header container">
+              <h1 class="col-sm-10">Lista de Compras</h1>
+              <div class="col-sm-2">
+                <img src="' . plugin_dir_url(__FILE__) . 'img/logo-home-chefs.png" alt="Home Chefs" title="Home Chefs" />
+              </div>
+            </section>
+            <section class="tips container">
+              <h2>5 Dicas Mágicas Para Usar Melhor a Sua Lista de Compras:</h2>
+              <ol>
+                <li><span>Antes de usar a lista, conheça as receitas da semana e seu passo a passo. Se não for preparar o Cardápio completo, avalie e decida quais refeições irá cozinhar e lembre-se de riscar da lista os ingredientes ou quantidades que não for utilizar.</span></li>
+                <li><span>Outro ponto a avaliar são os rendimentos de cada refeição. Em alguns casos, por exemplo,  a receita está planejada para render 2 porções. Se você quiser 4 porções, deve ter o dobro dos ingredientes.</span></li>
+                <li><span>Verifique quais dos ingredientes já possui em casa e risque da lista antes de ir ao supermercado.Em alguns casos, você usará apenas uma fração de um ingrediente. Porém, se não tiver a fração suficiente em casa, precisará comprar o ingrediente em sua porção integral. São exemplos de ingredientes fracionados que muitas vezes você já vai ter: Azeite, Óleo, Manteiga, Sal, Pimenta do Reino...</span></li>
+                <li><span>Abrindo este arquivo PDF no Adobe Acrobat Reader, você pode realçar ou riscar ingredientes selecionando o texto e clicando com o botão direito do mouse. Depois é só salvar a sua cópia editada. Dá pra inserir notas também.</span></li>
+                <li><span>Defina qual é a melhor forma de levar a lista para o mercado. Você pode baixar este arquivo no seu celular ou abrir no computador e tirar uma foto da tela (eu faço isso!) ou imprimir.</span></li>
+              </ol>
+              <div class="col-sm-8 col-sm-offset-2">
+                <h3><strong><i>VALE LEMBRAR:</i></strong> Nas primeiras semanas, as compras poderão ser maiores, em função dos ingredientes fracionados e temperos. Você vai perceber que, com o passar do tempo, começará a ter muitos deles em casa, pois sobrarão das receitas anteriores e não são perecíveis.</h3>
+              </div>
+            </section>
+            <section class="ingredients container">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <td class="text-center">Ingredientes</td>
+                    <td class="text-center">Quantidade</td>
+                    <td class="text-left">Medida</td>
+                  </tr>
+                </thead>
+                <tfoot></tfoot>
+                <tbody>';
+                foreach($ingredients as $list_item) {
+                  $html .= '<tr>
+                    <td class="text-center">' . $list_item['name'] . '</td>
+                    <td class="text-center">' . $list_item['amount'] . '</td>
+                    <td class="text-left">' . $list_item['measure'] . '</td>
+                  </tr>';
+                }
+                $html .= '</tbody>
+              </table>
+            </section>
+          </div>
+        </body>
+      </html>';
+      return $html;
     }
-    return true;
-  }
-  public function generate_pdf_html($ingredients){
-    $html = '<!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Lista de Compras da Semana</title>
-        <link href="' . plugin_dir_url(__FILE__) . 'css/bootstrap.min.css" rel="stylesheet">
-        <link href="' . plugin_dir_url(__FILE__) . 'css/freez-recipes.css" rel="stylesheet">
-      </head>
-      <body>
-        <div class="row">
-          <section class="header container">
-            <h1 class="col-sm-10">Lista de Compras | Semana 05 a 09 de Junho</h1>
-            <div class="col-sm-2">
-              <img src="' . plugin_dir_url(__FILE__) . 'img/logo-home-chefs.png" alt="Home Chefs" title="Home Chefs" />
-            </div>
-          </section>
-          <section class="tips container">
-            <h2>5 Dicas Mágicas Para Usar Melhor a Sua Lista de Compras:</h2>
-            <ol>
-              <li><span>Antes de usar a lista, conheça as receitas da semana e seu passo a passo. Se não for preparar o Cardápio completo, avalie e decida quais refeições irá cozinhar e lembre-se de riscar da lista os ingredientes ou quantidades que não for utilizar.</span></li>
-              <li><span>Outro ponto a avaliar são os rendimentos de cada refeição. Em alguns casos, por exemplo,  a receita está planejada para render 2 porções. Se você quiser 4 porções, deve ter o dobro dos ingredientes.</span></li>
-              <li><span>Verifique quais dos ingredientes já possui em casa e risque da lista antes de ir ao supermercado.Em alguns casos, você usará apenas uma fração de um ingrediente. Porém, se não tiver a fração suficiente em casa, precisará comprar o ingrediente em sua porção integral. São exemplos de ingredientes fracionados que muitas vezes você já vai ter: Azeite, Óleo, Manteiga, Sal, Pimenta do Reino...</span></li>
-              <li><span>Abrindo este arquivo PDF no Adobe Acrobat Reader, você pode realçar ou riscar ingredientes selecionando o texto e clicando com o botão direito do mouse. Depois é só salvar a sua cópia editada. Dá pra inserir notas também.</span></li>
-              <li><span>Defina qual é a melhor forma de levar a lista para o mercado. Você pode baixar este arquivo no seu celular ou abrir no computador e tirar uma foto da tela (eu faço isso!) ou imprimir.</span></li>
-            </ol>
-            <div class="col-sm-8 col-sm-offset-2">
-              <h3><strong><i>VALE LEMBRAR:</i></strong> Nas primeiras semanas, as compras poderão ser maiores, em função dos ingredientes fracionados e temperos. Você vai perceber que, com o passar do tempo, começará a ter muitos deles em casa, pois sobrarão das receitas anteriores e não são perecíveis.</h3>
-            </div>
-          </section>
-          <section class="ingredients container">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <td class="text-center">Ingredientes</td>
-                  <td class="text-center">Quantidade</td>
-                  <td class="text-left">Medida</td>
-                </tr>
-              </thead>
-              <tfoot></tfoot>
-              <tbody>';
-              foreach($ingredients as $list_item) {
-                $html .= '<tr>
-                  <td class="text-center">' . $list_item['name'] . '</td>
-                  <td class="text-center">' . $list_item['amount'] . '</td>
-                  <td class="text-left">' . $list_item['measure'] . '</td>
-                </tr>';
-              }
-              $html .= '</tbody>
-            </table>
-          </section>
-        </div>
-      </body>
-    </html>';
-    return $html;
   }
 }
 

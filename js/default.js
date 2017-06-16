@@ -38,4 +38,24 @@ jQuery(document).ready(function(){
   jQuery('.btn-remove-ingredient').live('click', function(){
     jQuery(this).parent().remove();
   });
+  jQuery('#freez-recipes-pdf-view').on('click', function(){
+    jQuery('#freez-recipes-form-action').val('freez_recipes_view');
+    jQuery.ajax({
+      url: ajax_object.ajax_url,
+      data: jQuery('#freez-recipes-form-view-print').serializeArray(),
+      cache: false,
+      context: document.body,
+      dataType: 'json',
+      type: 'POST',
+      success: function(data, textStatus, jqXHR){
+        console.log(data);
+        var wnd = window.open('about:blank', 'Home Chefs - Lista de Compras');
+        wnd.document.write(data.html);
+        wnd.document.close();
+      },
+      error: function(jqXHR, textStatus, errorThrown){
+        console.error(textStatus, errorThrown);
+      }
+    });
+  })
 });
