@@ -10,6 +10,7 @@ body, .tips li span {
 }
 .header h1, .tips li {
   font-family: "Lobster", "PT Sans", Verdana;
+  font-style: italic;;
 }
 .header img {
   width: 100%;
@@ -26,8 +27,4 @@ body, .tips li span {
 .table thead {
   background: #e01d36;
   color: #fff;
-}
-
-.tips h3 {
-  margin-bottom: 3em;
 }

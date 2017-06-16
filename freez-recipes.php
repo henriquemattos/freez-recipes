@@ -279,21 +279,20 @@ class Freez_Recipes {
     return $str;
   }
   public function freez_recipes_view(){
-    $pdf_html = $this->generate_pdf_html();
+    $pdf_html = $this->generate_pdf_html($_POST);
     wp_send_json(array(
-      'html' => $pdf_html
+      'html' => $pdf_html['page1'] . $pdf_html['page2']
     ));
     wp_die();
   }
   public function freez_recipes_print(){
-    $pdf_html = $this->generate_pdf_html();
+    $pdf_html = $this->generate_pdf_html($_POST);
 
     // instantiate and use the dompdf class
     $dompdf = new Dompdf();
-    $dompdf->loadHtml($pdf_html);
-
-    // (Optional) Setup the paper size and orientation
     $dompdf->setPaper('A4', 'portrait');
+    $dompdf->loadHtml($pdf_html['page1'] . $pdf_html['page2']);
+    //$dompdf->loadHtml($pdf_html['page2']);
 
     // Render the HTML as PDF
     $dompdf->render();
@@ -302,17 +301,17 @@ class Freez_Recipes {
     $dompdf->stream();
     // return true;
   }
-  public function generate_pdf_html(){
-    $checkboxes = array();
-    if(isset($_POST['data'])){
+  public function generate_pdf_html($post = array()){
+    // $checkboxes = array();
+    /*if(isset($post['data'])){
       // $data = explode('&', urldecode($_POST['data']));
-      $data = json_decode(stripslashes(urldecode($_POST['data'])));
+      $data = json_decode(stripslashes(urldecode($post['data'])));
       print_r($data);
       exit;
-    }
-    if(isset($_POST['checkbox-recipes'])){
+    }*/
+    if(isset($post['checkbox-recipes'])){
       $ingredients = array();
-      foreach($_POST['checkbox-recipes'] as $id){
+      foreach($post['checkbox-recipes'] as $id){
         // $recipe = get_post($id, 'OBJECT');
         $postmeta = json_decode(get_post_meta($id, 'freez_recipes_ingredients', true));
         if(count($postmeta) > 0){
@@ -329,7 +328,7 @@ class Freez_Recipes {
           }
         }
       }
-      $html = '<!DOCTYPE html>
+      $page1 = '<!DOCTYPE html>
       <html lang="en">
         <head>
           <meta charset="utf-8">
@@ -340,14 +339,11 @@ class Freez_Recipes {
           <link href="' . plugin_dir_url(__FILE__) . 'css/freez-recipes.css" rel="stylesheet">
         </head>
         <body>
-          <div class="row">
-            <section class="header container">
-              <h1 class="col-sm-10">Lista de Compras</h1>
-              <div class="col-sm-2">
-                <img src="' . plugin_dir_url(__FILE__) . 'img/logo-home-chefs.png" alt="Home Chefs" title="Home Chefs" />
-              </div>
-            </section>
-            <section class="tips container">
+          <div class="container">
+            <div class="header col-sm-12">
+              <h1>Lista de Compras</h1>
+            </div>
+            <div class="tips col-sm-12">
               <h2>5 Dicas Mágicas Para Usar Melhor a Sua Lista de Compras:</h2>
               <ol>
                 <li><span>Antes de usar a lista, conheça as receitas da semana e seu passo a passo. Se não for preparar o Cardápio completo, avalie e decida quais refeições irá cozinhar e lembre-se de riscar da lista os ingredientes ou quantidades que não for utilizar.</span></li>
@@ -359,31 +355,32 @@ class Freez_Recipes {
               <div class="col-sm-8 col-sm-offset-2">
                 <h3><strong><i>VALE LEMBRAR:</i></strong> Nas primeiras semanas, as compras poderão ser maiores, em função dos ingredientes fracionados e temperos. Você vai perceber que, com o passar do tempo, começará a ter muitos deles em casa, pois sobrarão das receitas anteriores e não são perecíveis.</h3>
               </div>
-            </section>
-            <section class="ingredients container">
-              <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <td class="text-center">Ingredientes</td>
-                    <td class="text-center">Quantidade</td>
-                    <td class="text-left">Medida</td>
-                  </tr>
-                </thead>
-                <tfoot></tfoot>
-                <tbody>';
-                foreach($ingredients as $list_item) {
-                  $html .= '<tr>
-                    <td class="text-center">' . $list_item['name'] . '</td>
-                    <td class="text-center">' . $list_item['amount'] . '</td>
-                    <td class="text-left">' . $list_item['measure'] . '</td>
-                  </tr>';
-                }
-                $html .= '</tbody>
-              </table>
-            </section>
-          </div>
-        </body>
-      </html>';
+            </div>';
+      $page2 = '<div class="ingredients container">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <td class="text-center">Ingredientes</td>
+                        <td class="text-center">Quantidade</td>
+                        <td class="text-left">Medida</td>
+                      </tr>
+                    </thead>
+                    <tfoot></tfoot>
+                    <tbody>';
+                    foreach($ingredients as $list_item) {
+                      $page2 .= '<tr>
+                        <td class="text-center">' . $list_item['name'] . '</td>
+                        <td class="text-center">' . $list_item['amount'] . '</td>
+                        <td class="text-left">' . $list_item['measure'] . '</td>
+                      </tr>';
+                    }
+                    $page2 .= '</tbody>
+                  </table>
+                </div>
+              </div>
+            </body>
+          </html>';
+      $html = array('page1' => $page1, 'page2' => $page2);
       return $html;
     }
   }
