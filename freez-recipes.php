@@ -253,6 +253,7 @@ class Freez_Recipes {
     if(isset($atts['id'])){
       $list = explode(',', $atts['id']);
       foreach($list as $id){
+        $id = strip_tags($id);
         $str .= '<article id="recipes-' . $id . '" class="recipes-' . $id . ' post type-recipe">';
         $recipe = get_post($id, 'OBJECT');
         $link = get_post_permalink($id);

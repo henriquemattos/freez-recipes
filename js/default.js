@@ -61,5 +61,6 @@ jQuery(document).ready(function(){
         console.error(textStatus, errorThrown);
       }
     });
+    jQuery('#freez-recipes-form-action').val('freez_recipes_print');
   })
 });
