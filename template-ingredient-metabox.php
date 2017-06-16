@@ -10,6 +10,7 @@
           <option value="<?php echo $unit; ?>" <?php if($unit === $ingredient->measure){ echo 'selected="selected"'; } ?>><?php echo $unit; ?></option>
         <?php endforeach; ?>
         </select>
+        <button type="button" class="btn-remove-ingredient"><span class="dashicons dashicons-no"></span></button>
       </div>
     <?php endforeach; ?>
   <?php endif; ?>
@@ -22,6 +23,7 @@
       <option value="<?php echo $unit; ?>"><?php echo $unit; ?></option>
     <?php endforeach; ?>
     </select>
+    <button type="button" class="btn-remove-ingredient"><span class="dashicons dashicons-no"></span></button>
   </div>
 </div>
 <div>

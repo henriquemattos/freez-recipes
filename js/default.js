@@ -35,4 +35,7 @@ jQuery(document).ready(function(){
     })
     newRow.appendTo(jQuery('#freez-recipes-metaboxes'));
   });
+  jQuery('.btn-remove-ingredient').live('click', function(){
+    jQuery(this).parent().remove();
+  });
 });
