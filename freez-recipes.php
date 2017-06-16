@@ -253,12 +253,12 @@ class Freez_Recipes {
         $str .= '<article id="recipes-' . $id . '" class="recipes-' . $id . ' post type-recipe">';
         $recipe = get_post($id, 'OBJECT');
         $link = get_post_permalink($id);
-        if($atts['link'] !== "false"){
+        if(isset($atts['link']) && $atts['link'] !== "false"){
           $link = get_post_permalink($id);
           $link_begin = '<a href="' . $link . '">';
           $link_end = '</a>';
         }
-        if($atts['checkbox'] !== "false"){
+        if(isset($atts['checkbox']) && $atts['checkbox'] !== "false"){
           $checkbox = '<input type="checkbox" value="' . $id . '" name="checkbox-recipes[]" class="freez-recipes-checkboxes" />';
         }
         $str .= "<p>{$checkbox}{$link_begin}{$recipe->post_title}{$link_end}</p>";
