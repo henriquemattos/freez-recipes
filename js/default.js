@@ -39,6 +39,10 @@ jQuery(document).ready(function(){
     jQuery(this).parent().remove();
   });
   jQuery('#freez-recipes-pdf-view').on('click', function(){
+    if(!jQuery('.freez-recipes-checkboxes').prop('checked')){
+      alert('Você precisa selecionar pelo menos uma receita para ver a lista de ingredientes.');
+      return true;
+    }
     jQuery('#freez-recipes-form-action').val('freez_recipes_view');
     jQuery.ajax({
       url: ajax_object.ajax_url,

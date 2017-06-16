@@ -67,11 +67,14 @@ class Freez_Recipes {
         'porção'
       )
     );
-    flush_rewrite_rules();
+    global $wp_rewrite;
+    $wp_rewrite->flush_rules();
   }
   public function uninstall(){
     delete_option('freez_recipes_ingredients_measures');
-    flush_rewrite_rules();
+
+    global $wp_rewrite;
+    $wp_rewrite->flush_rules();
   }
   public function freez_save_ingredients_metaboxes($post_id){
     /*
@@ -290,14 +293,14 @@ class Freez_Recipes {
     $dompdf->loadHtml($pdf_html);
 
     // (Optional) Setup the paper size and orientation
-    $dompdf->setPaper('A4', 'landscape');
+    $dompdf->setPaper('A4', 'portrait');
 
     // Render the HTML as PDF
     $dompdf->render();
 
     // Output the generated PDF to Browser
     $dompdf->stream();
-    return true;
+    // return true;
   }
   public function generate_pdf_html(){
     $checkboxes = array();
