@@ -265,7 +265,7 @@ class Freez_Recipes {
         $str .= '</article>';
       }
     }
-    if($atts['checkboxes'] !== "false"){
+    if(isset($atts['checkbox']) && $atts['checkbox'] !== "false"){
       $str .= '<div>';
       $str .= '<button id="freez-recipes-pdf-view" name="freez-recipes-pdf-view" type="button">Ver Lista</button> ';
       $str .= '<button id="freez-recipes-pdf-print" name="freez-recipes-pdf-print" type="submit">Salvar PDF</button>';
