@@ -375,6 +375,7 @@ class Freez_Recipes {
           <div class="container">
             <div class="header col-sm-12">
               <h1>Lista de Compras</h1>
+              <img src="' . plugin_dir_url(__FILE__) . 'img/logo-home-chefs.jpg" alt="Home Chefs" title="Home Chefs" />
             </div>
             <div class="tips col-sm-12">
               <h2>5 Dicas Mágicas Para Usar Melhor a Sua Lista de Compras:</h2>

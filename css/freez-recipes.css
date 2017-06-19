@@ -13,8 +13,10 @@ body, .tips li span {
   font-style: italic;;
 }
 .header img {
-  width: 100%;
+  float: right;
+  width: 160px;
   max-width: 100%;
+  margin-top: -50px;
 }
 .tips li {
   font-size: 2em;
