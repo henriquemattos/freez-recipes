@@ -22,6 +22,7 @@ class Freez_Recipes {
   public function __construct(){
     add_action('init', array($this, 'freez_create_post_type'));
     add_action('init', array($this, 'freez_create_taxonomy'));
+    add_action('init', array($this, 'freez_create_taxonomy_measures'));
     add_action('init', array($this, 'freez_enqueue_scripts'));
     add_action('add_meta_boxes', array($this, 'freez_add_ingredients_metaboxes'));
     add_action('add_meta_boxes', array($this, 'freez_add_shortcode_metaboxes'));
@@ -55,24 +56,15 @@ class Freez_Recipes {
     wp_localize_script('freez-recipes-js', 'ajax_object', array('ajax_url' => admin_url('admin-ajax.php'),'nonce' => wp_create_nonce('freez_recipes_get_ingredients_nonce')));
   }
   public function install(){
-    update_option(
-      'freez_recipes_ingredients_measures',
-      array(
-        'un',
-        'mg',
-        'g',
-        'kg',
-        'ml',
-        'l',
-        'porção'
-      )
-    );
-    global $wp_rewrite;
-    $wp_rewrite->flush_rules();
+    if(get_option('freez_recipes_ingredients_measures')){
+      delete_option('freez_recipes_ingredients_measures');
+    }
+    $this->freez_recipes_flush_rules();
   }
   public function uninstall(){
-    delete_option('freez_recipes_ingredients_measures');
-
+    $this->freez_recipes_flush_rules();
+  }
+  public function freez_recipes_flush_rules(){
     global $wp_rewrite;
     $wp_rewrite->flush_rules();
   }
@@ -135,16 +127,23 @@ class Freez_Recipes {
     // Add an nonce field so we can check for it later.
     wp_nonce_field('freez_recipes_ingredients', 'freez_recipes_ingredients_nonce');
     $postmeta = json_decode(get_post_meta($post->ID, 'freez_recipes_ingredients', true));
-    $measures = get_option('freez_recipes_ingredients_measures');
+    // $measures = get_option('freez_recipes_ingredients_measures');
+    $measures = $this->get_measures();
     include_once 'template-ingredient-metabox.php';
   }
   public function get_ingredients(){
-    $terms = get_terms( array(
-      'taxonomy' => 'freez_ingredients',
+    $terms = get_terms(array(
+      'taxonomy'   => 'freez_ingredients',
       'hide_empty' => false
     ));
     print json_encode($terms);
     wp_die();
+  }
+  public function get_measures(){
+    return get_terms(array(
+      'taxonomy'   => 'freez_measures',
+      'hide_empty' => false
+    ));
   }
   public function freez_add_shortcode_metaboxes(){
     global $wp_meta_boxes;
@@ -201,6 +200,39 @@ class Freez_Recipes {
   	);
 
   	register_taxonomy('freez_ingredients', 'freez_recipes', $args);
+  }
+  public function freez_create_taxonomy_measures(){
+  	$labels = array(
+  		'name'                       => _x('Medidas', 'taxonomy general name', 'freez-recipes'),
+  		'singular_name'              => _x('Medida', 'taxonomy singular name', 'freez-recipes'),
+  		'search_items'               => __('Buscar medidas', 'freez-recipes'),
+  		'popular_items'              => __('Medidas populares', 'freez-recipes'),
+  		'all_items'                  => __('Todas as medidas', 'freez-recipes'),
+  		'parent_item'                => null,
+  		'parent_item_colon'          => null,
+  		'edit_item'                  => __('Editar medida', 'freez-recipes'),
+  		'update_item'                => __('Atualizar medida', 'freez-recipes'),
+  		'add_new_item'               => __('Adicionar nova medida', 'freez-recipes'),
+  		'new_item_name'              => __('Nome da nova medida', 'freez-recipes'),
+  		'separate_items_with_commas' => __('Separe medidas com vírgula', 'freez-recipes'),
+  		'add_or_remove_items'        => __('Adicione ou remova medidas', 'freez-recipes'),
+  		'choose_from_most_used'      => __('Escolha nas medidas mais utilizadas', 'freez-recipes'),
+  		'not_found'                  => __('Nenhuma medida encontrada.', 'freez-recipes'),
+  		'menu_name'                  => __('Medidas', 'freez-recipes'),
+  	);
+
+  	$args = array(
+  		'hierarchical'          => false,
+  		'labels'                => $labels,
+  		'show_ui'               => true,
+  		'show_admin_column'     => true,
+  		'update_count_callback' => '_update_post_term_count',
+  		'query_var'             => true,
+      'meta_box_cb'           => false,
+  		'rewrite'               => array('slug' => 'freez_measurese')
+  	);
+
+  	register_taxonomy('freez_measures', 'freez_recipes', $args);
   }
   public function freez_create_post_type(){
     register_post_type('freez_recipes',
