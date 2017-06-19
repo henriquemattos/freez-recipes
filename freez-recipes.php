@@ -34,7 +34,9 @@ class Freez_Recipes {
     add_action('wp_ajax_freez_recipes_view', array($this, 'freez_recipes_view'));
     add_action('wp_ajax_nopriv_freez_recipes_view', array($this, 'freez_recipes_view'));
 
+    add_action('admin_menu', array($this, 'freez_recipes_settings_menu'));
     add_action('admin_action_freez_recipes_print', array($this, 'freez_recipes_print'));
+    add_action('admin_action_freez_recipes_settings', array($this, 'freez_recipes_settings'));
 
     add_filter('template_include', array($this, 'freez_recipes_template_include'), 1);
     add_filter('manage_posts_columns', array($this, 'freez_recipes_columns_shortcode'));
@@ -44,6 +46,15 @@ class Freez_Recipes {
 
     register_activation_hook(__FILE__, array($this, 'install'));
     register_deactivation_hook(__FILE__, array($this, 'uninstall'));
+  }
+  public function freez_recipes_settings_menu(){
+    add_submenu_page('options-general.php', 'Freez Recipes', 'Freez Recipes', 'manage_options', 'freez_recipes_settings', array($this, 'freez_recipes_settings'));
+  }
+  public function freez_recipes_settings(){
+    if(isset($_POST) && isset($_POST['freez_recipes_settings_description'])){
+      update_option('freez_recipes_settings_description', $_POST['freez_recipes_settings_description']);
+    }
+    include_once plugin_dir_path(__FILE__) . 'template-settings.php';
   }
   public function freez_enqueue_scripts(){
     wp_enqueue_script(
@@ -335,13 +346,6 @@ class Freez_Recipes {
     // return true;
   }
   public function generate_pdf_html($post = array()){
-    // $checkboxes = array();
-    /*if(isset($post['data'])){
-      // $data = explode('&', urldecode($_POST['data']));
-      $data = json_decode(stripslashes(urldecode($post['data'])));
-      print_r($data);
-      exit;
-    }*/
     if(isset($post['checkbox-recipes'])){
       $ingredients = array();
       foreach($post['checkbox-recipes'] as $id){
@@ -377,15 +381,8 @@ class Freez_Recipes {
               <h1>Lista de Compras</h1>
               <img src="' . plugin_dir_url(__FILE__) . 'img/logo-home-chefs.jpg" alt="Home Chefs" title="Home Chefs" />
             </div>
-            <div class="tips col-sm-12">
-              <h2>5 Dicas Mágicas Para Usar Melhor a Sua Lista de Compras:</h2>
-              <ol>
-                <li><span>Antes de usar a lista, conheça as receitas da semana e seu passo a passo. Se não for preparar o Cardápio completo, avalie e decida quais refeições irá cozinhar e lembre-se de riscar da lista os ingredientes ou quantidades que não for utilizar.</span></li>
-                <li><span>Outro ponto a avaliar são os rendimentos de cada refeição. Em alguns casos, por exemplo,  a receita está planejada para render 2 porções. Se você quiser 4 porções, deve ter o dobro dos ingredientes.</span></li>
-                <li><span>Verifique quais dos ingredientes já possui em casa e risque da lista antes de ir ao supermercado.Em alguns casos, você usará apenas uma fração de um ingrediente. Porém, se não tiver a fração suficiente em casa, precisará comprar o ingrediente em sua porção integral. São exemplos de ingredientes fracionados que muitas vezes você já vai ter: Azeite, Óleo, Manteiga, Sal, Pimenta do Reino...</span></li>
-                <li><span>Abrindo este arquivo PDF no Adobe Acrobat Reader, você pode realçar ou riscar ingredientes selecionando o texto e clicando com o botão direito do mouse. Depois é só salvar a sua cópia editada. Dá pra inserir notas também.</span></li>
-                <li><span>Defina qual é a melhor forma de levar a lista para o mercado. Você pode baixar este arquivo no seu celular ou abrir no computador e tirar uma foto da tela (eu faço isso!) ou imprimir.</span></li>
-              </ol>
+            <div class="tips col-sm-12">' . $this->get_freez_recipes_settings_description() . '
+
               <div class="col-sm-8 col-sm-offset-2">
                 <h3><strong><i>VALE LEMBRAR:</i></strong> Nas primeiras semanas, as compras poderão ser maiores, em função dos ingredientes fracionados e temperos. Você vai perceber que, com o passar do tempo, começará a ter muitos deles em casa, pois sobrarão das receitas anteriores e não são perecíveis.</h3>
               </div>
@@ -416,6 +413,20 @@ class Freez_Recipes {
           </html>';
       $html = array('page1' => $page1, 'page2' => $page2);
       return $html;
+    }
+  }
+  public function get_freez_recipes_settings_description(){
+    if($str_description = get_option('freez_recipes_settings_description')){
+      return $str_description;
+    } else {
+      return '<h2>5 Dicas Mágicas Para Usar Melhor a Sua Lista de Compras:</h2>
+      <ol>
+        <li><span>Antes de usar a lista, conheça as receitas da semana e seu passo a passo. Se não for preparar o Cardápio completo, avalie e decida quais refeições irá cozinhar e lembre-se de riscar da lista os ingredientes ou quantidades que não for utilizar.</span></li>
+        <li><span>Outro ponto a avaliar são os rendimentos de cada refeição. Em alguns casos, por exemplo,  a receita está planejada para render 2 porções. Se você quiser 4 porções, deve ter o dobro dos ingredientes.</span></li>
+        <li><span>Verifique quais dos ingredientes já possui em casa e risque da lista antes de ir ao supermercado.Em alguns casos, você usará apenas uma fração de um ingrediente. Porém, se não tiver a fração suficiente em casa, precisará comprar o ingrediente em sua porção integral. São exemplos de ingredientes fracionados que muitas vezes você já vai ter: Azeite, Óleo, Manteiga, Sal, Pimenta do Reino...</span></li>
+        <li><span>Abrindo este arquivo PDF no Adobe Acrobat Reader, você pode realçar ou riscar ingredientes selecionando o texto e clicando com o botão direito do mouse. Depois é só salvar a sua cópia editada. Dá pra inserir notas também.</span></li>
+        <li><span>Defina qual é a melhor forma de levar a lista para o mercado. Você pode baixar este arquivo no seu celular ou abrir no computador e tirar uma foto da tela (eu faço isso!) ou imprimir.</span></li>
+      </ol>';
     }
   }
 }

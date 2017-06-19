@@ -2,8 +2,8 @@ jQuery(document).ready(function(){
   "use strict";
   var ingredientsData = [];
   var data = {
-      'action': 'get_ingredients',
-      'nonce': ajax_object.nonce,
+    'action': 'get_ingredients',
+    'nonce': ajax_object.nonce,
   };
   jQuery.ajax({
     url: ajax_object.ajax_url,
@@ -59,8 +59,33 @@ jQuery(document).ready(function(){
       dataType: 'json',
       type: 'POST',
       success: function(data, textStatus, jqXHR){
-        console.log(data);
+        var popupBlockerChecker = {
+          check: function(popup_window){
+            var _scope = this;
+            if (popup_window) {
+              if(/chrome/.test(navigator.userAgent.toLowerCase())){
+                setTimeout(function () {
+                  _scope._is_popup_blocked(_scope, popup_window);
+                },200);
+              }else{
+                popup_window.onload = function () {
+                  _scope._is_popup_blocked(_scope, popup_window);
+                };
+              }
+            }else{
+              _scope._displayError();
+            }
+          },
+          _is_popup_blocked: function(scope, popup_window){
+            if ((popup_window.innerHeight > 0)==false){ scope._displayError(); }
+          },
+          _displayError: function(){
+            alert("Seu bloqueador de popup está ativado! Por favor adicione este site em sua lista de permissões.");
+          }
+        };
+
         var wnd = window.open('about:blank', 'Home Chefs - Lista de Compras');
+        popupBlockerChecker.check(wnd);
         wnd.document.write(data.html);
         wnd.document.close();
       },

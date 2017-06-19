@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css?family=Lobster|PT+Sans');
-body, .tips li span {
+body, .tips li span, .tips li em {
   font-family: "PT Sans", "Trebuchet MS", Helvetica, sans-serif;
 }
-body, .tips li span {
+body, .tips li span, .tips li em {
   color: #666;
 }
 .header h1, .tips h3 strong, .tips li {
@@ -23,8 +23,9 @@ body, .tips li span {
   line-height: 100%;
   padding-bottom: 1em;
 }
-.tips li span {
+.tips li span, .tips li em {
   font-size: .625em;
+  font-style: normal;
 }
 .table thead {
   background: #e01d36;
