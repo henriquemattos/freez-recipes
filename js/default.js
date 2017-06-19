@@ -38,8 +38,15 @@ jQuery(document).ready(function(){
   jQuery('.btn-remove-ingredient').live('click', function(){
     jQuery(this).parent().remove();
   });
+  jQuery('#freez-recipes-form-view-print').live('submit', function(e){
+    if(!jQuery('#freez-recipes-form-view-print input[type=checkbox]:checked').length){
+      e.preventDefault();
+      alert('Você precisa selecionar pelo menos uma receita para salvar o PDF da lista de compras.');
+      return true;
+    }
+  });
   jQuery('#freez-recipes-pdf-view').on('click', function(){
-    if(!jQuery('.freez-recipes-checkboxes').prop('checked')){
+    if(!jQuery('#freez-recipes-form-view-print input[type=checkbox]:checked').length){
       alert('Você precisa selecionar pelo menos uma receita para ver a lista de ingredientes.');
       return true;
     }
