@@ -376,14 +376,17 @@ class Freez_Recipes {
           <link href="' . plugin_dir_url(__FILE__) . 'css/freez-recipes.css" rel="stylesheet">
         </head>
         <body>
-          <div class="container"><div class="row">
+        <div class="container">
+          <div class="row">
             <div class="header col-sm-12">
               <h1>Lista de Compras</h1>
               <img src="' . plugin_dir_url(__FILE__) . 'img/logo-home-chefs.jpg" alt="Home Chefs" title="Home Chefs" />
             </div>
+          </div>
+          <div class="row">
             <div class="tips col-sm-12">' . $this->get_freez_recipes_settings_description() . '</div>
-          </div></div>';
-      $page2 = '<div class="ingredients container"><div class="row">
+          </div>';
+      $page2 = '<div class="ingredients row"><div class="col-sm-12">
                   <table class="table table-striped">
                     <thead>
                       <tr>
@@ -403,7 +406,7 @@ class Freez_Recipes {
                     }
                     $page2 .= '</tbody>
                   </table>
-                </div></div>
+              </div></div>
               </div>
             </body>
           </html>';

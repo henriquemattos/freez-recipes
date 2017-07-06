@@ -8,6 +8,11 @@ body, .tips li span, .tips li em {
 .header h1, .tips h3 strong, .tips li {
   color: #e01d36;
 }
+.row {
+  clear: both;
+  display: block;
+}
+
 .header h1, .tips li {
   font-family: "Lobster", "PT Sans", Verdana;
   font-style: italic;;
