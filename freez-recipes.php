@@ -381,12 +381,8 @@ class Freez_Recipes {
               <h1>Lista de Compras</h1>
               <img src="' . plugin_dir_url(__FILE__) . 'img/logo-home-chefs.jpg" alt="Home Chefs" title="Home Chefs" />
             </div>
-            <div class="tips col-sm-12">' . $this->get_freez_recipes_settings_description() . '
-
-              <div class="col-sm-8 col-sm-offset-2">
-                <h3><strong><i>VALE LEMBRAR:</i></strong> Nas primeiras semanas, as compras poderão ser maiores, em função dos ingredientes fracionados e temperos. Você vai perceber que, com o passar do tempo, começará a ter muitos deles em casa, pois sobrarão das receitas anteriores e não são perecíveis.</h3>
-              </div>
-            </div></div></div>';
+            <div class="tips col-sm-12">' . $this->get_freez_recipes_settings_description() . '</div>
+          </div></div>';
       $page2 = '<div class="ingredients container"><div class="row">
                   <table class="table table-striped">
                     <thead>
