@@ -17,6 +17,7 @@ require_once 'dompdf/autoload.inc.php';
 
 // reference the Dompdf namespace
 use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class Freez_Recipes {
   public function __construct(){
@@ -332,8 +333,10 @@ class Freez_Recipes {
   public function freez_recipes_print(){
     $pdf_html = $this->generate_pdf_html($_POST);
 
+    $options = new Options();
+    $options->set('isRemoteEnabled', true);
     // instantiate and use the dompdf class
-    $dompdf = new Dompdf();
+    $dompdf = new Dompdf($options);
     $dompdf->setPaper('A4', 'portrait');
     $dompdf->loadHtml($pdf_html['page1'] . $pdf_html['page2']);
     //$dompdf->loadHtml($pdf_html['page2']);
