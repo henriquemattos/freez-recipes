@@ -36,7 +36,6 @@ body, .tips li span, .tips li em {
   background: #e01d36;
   color: #fff;
 }
-
-/*cliente pediu que sumisse com as dicas devido a queixas dos consumidores*/
-.tips {display:none;}
-.ingredients {margin-top:20px;}
+.ingredients {
+  margin-top: 20px;
+}
