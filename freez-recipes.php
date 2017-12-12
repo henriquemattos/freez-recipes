@@ -444,7 +444,7 @@ class Freez_Recipes {
             </div>
           </div>';
       $page2 = '<div class="ingredients row"><div class="col-sm-12">
-                  <table class="table table-striped">
+                  <table class="table table-striped table-condensed">
                     <thead>
                       <tr>
                         <td class="text-center">Ingredientes</td>
