@@ -344,6 +344,31 @@ class Freez_Recipes {
         $str .= "<p>{$checkbox}{$link_begin}{$recipe->post_title}{$link_end}</p>";
         $str .= '</article>';
       }
+    } else {
+      $recipes = get_posts(array(
+        'numberposts'    => -1,
+        'post_type'      => 'freez_recipes',
+        'post_status'    => 'publish',
+        'posts_per_page' => isset($atts['perpage']) ? $atts['perpage'] : 10,
+        'offset'         => isset($atts['perpage']) ? $atts['perpage'] : 10,
+        'order'          => isset($atts['order']) ? $atts['order'] : 'DESC',
+        'orderby'        => isset($atts['orderby']) ? $atts['orderby'] : 'date'
+      ));
+      foreach($recipes as $recipe){
+        $id = strip_tags($recipe->ID);
+        $str .= '<article id="recipes-' . $id . '" class="recipes-' . $id . ' post type-recipe">';
+        $link = get_post_permalink($id);
+        if(isset($atts['link']) && $atts['link'] !== "false"){
+          $link = get_post_permalink($id);
+          $link_begin = '<a href="' . $link . '">';
+          $link_end = '</a>';
+        }
+        if(isset($atts['checkbox']) && $atts['checkbox'] !== "false"){
+          $checkbox = '<input type="checkbox" value="' . $id . '" name="checkbox-recipes[]" class="freez-recipes-checkboxes" />';
+        }
+        $str .= "<p>{$checkbox}{$link_begin}{$recipe->post_title}{$link_end}</p>";
+        $str .= '</article>';
+      }
     }
     if(isset($atts['checkbox']) && $atts['checkbox'] !== "false"){
       $str .= '<div>';
