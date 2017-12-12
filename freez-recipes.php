@@ -3,7 +3,7 @@
 Plugin Name: Freez Recipes
 Plugin URI:  http://www.freez.com.br
 Description: Create recipes, print PDF versions for customers and filter totals.
-Version:     1.0.0
+Version:     1.1.0
 Author:      Freez
 Author URI:  http://www.freez.com.br
 License:     GPL2
@@ -24,6 +24,7 @@ class Freez_Recipes {
     add_action('init', array($this, 'freez_create_post_type'));
     add_action('init', array($this, 'freez_create_taxonomy'));
     add_action('init', array($this, 'freez_create_taxonomy_measures'));
+    add_action('init', array($this, 'freez_create_taxonomy_categories'));
     add_action('init', array($this, 'freez_enqueue_scripts'));
     add_action('add_meta_boxes', array($this, 'freez_add_ingredients_metaboxes'));
     add_action('add_meta_boxes', array($this, 'freez_add_shortcode_metaboxes'));
@@ -85,14 +86,12 @@ class Freez_Recipes {
      * We need to verify this came from the our screen and with proper authorization,
      * because save_post can be triggered at other times.
      */
-    // Check if our nonce is set.
     if(!isset($_POST['freez_recipes_ingredients_nonce'])){
       return $post_id;
     }
 
     $nonce = $_POST['freez_recipes_ingredients_nonce'];
 
-    // Verify that the nonce is valid.
     if (!wp_verify_nonce($nonce, 'freez_recipes_ingredients')){
       return $post_id;
     }
@@ -179,6 +178,39 @@ class Freez_Recipes {
     if($column_name == 'shortcode'){
       echo "[freezrecipes id=\"{$post_ID}\"]";
     }
+  }
+  public function freez_create_taxonomy_categories() {
+    $labels = array(
+  		'name'                       => _x('Categorias', 'taxonomy general name', 'freez-recipes'),
+  		'singular_name'              => _x('Categoria', 'taxonomy singular name', 'freez-recipes'),
+  		'search_items'               => __('Buscar categorias', 'freez-recipes'),
+  		'popular_items'              => __('Categorias populares', 'freez-recipes'),
+  		'all_items'                  => __('Todas as categorias', 'freez-recipes'),
+  		'parent_item'                => null,
+  		'parent_item_colon'          => null,
+  		'edit_item'                  => __('Editar categoria', 'freez-recipes'),
+  		'update_item'                => __('Atualizar categoria', 'freez-recipes'),
+  		'add_new_item'               => __('Adicionar novo categoria', 'freez-recipes'),
+  		'new_item_name'              => __('Nome da nova categoria', 'freez-recipes'),
+  		'separate_items_with_commas' => __('Separe categorias com vírgula', 'freez-recipes'),
+  		'add_or_remove_items'        => __('Adicione ou remova categorias', 'freez-recipes'),
+  		'choose_from_most_used'      => __('Escolha nas categorias  mais utilizadas', 'freez-recipes'),
+  		'not_found'                  => __('Nenhuma categoria encontrada.', 'freez-recipes'),
+  		'menu_name'                  => __('Categorias de Receitas', 'freez-recipes'),
+  	);
+
+  	$args = array(
+  		'hierarchical'          => false,
+  		'labels'                => $labels,
+  		'show_ui'               => true,
+  		'show_admin_column'     => true,
+  		'update_count_callback' => '_update_post_term_count',
+  		'query_var'             => true,
+      'meta_box_cb'           => false,
+  		'rewrite'               => array('slug' => 'freez_categories')
+  	);
+
+  	register_taxonomy('freez_categories', 'freez_recipes', $args);
   }
   public function freez_create_taxonomy(){
   	$labels = array(
