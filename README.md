@@ -12,6 +12,6 @@ Este plugin de receitas foi desenvolvido a pedidos da [Freez Creative Studio](ht
 + Para listar receitas com checkbox, botão de impressão e links: `[freezrecipes id=123,124,125 checkbox="true" link="true"]`.
 + Para listar receitas com paginação `[freezrecipes perpage="10"]`.
 + Para listar receitas com ordenação `[freezrecipes order="DESC" orderby="date"]`.
-⋅⋅⋅ Valores para order: ASC | DESC
-⋅⋅⋅ Valores para orderby: title | date | modified | rand
-⋅⋅⋅ Paginação e Ordenação não funcionam combinados com IDs.
+++ Valores para order: ASC | DESC
+++ Valores para orderby: title | date | modified | rand
+++ Paginação e Ordenação não funcionam combinados com IDs.
