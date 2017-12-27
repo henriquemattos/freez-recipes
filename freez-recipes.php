@@ -50,7 +50,7 @@ class Freez_Recipes {
     register_deactivation_hook(__FILE__, array($this, 'uninstall'));
   }
   public function freez_recipes_settings_menu(){
-    add_submenu_page('options-general.php', 'Freez Recipes', 'Freez Recipes', 'manage_options', 'freez_recipes_settings', array($this, 'freez_recipes_settings'));
+    add_submenu_page('edit.php?post_type=freez_recipes', 'Freez Recipes - Dicas', 'Dicas', 'edit_posts', 'freez_recipes_settings', array($this, 'freez_recipes_settings'));
   }
   public function freez_recipes_settings(){
     if(isset($_POST) && isset($_POST['freez_recipes_settings_description'])){
