@@ -21,10 +21,10 @@ use Dompdf\Options;
 
 class Freez_Recipes {
   public function __construct(){
+    add_action('init', array($this, 'freez_create_taxonomy'), 0);
+    add_action('init', array($this, 'freez_create_taxonomy_measures'), 0);
+    add_action('init', array($this, 'freez_create_taxonomy_categories'), 0);
     add_action('init', array($this, 'freez_create_post_type'));
-    add_action('init', array($this, 'freez_create_taxonomy'));
-    add_action('init', array($this, 'freez_create_taxonomy_measures'));
-    add_action('init', array($this, 'freez_create_taxonomy_categories'));
     add_action('init', array($this, 'freez_enqueue_scripts'));
     add_action('add_meta_boxes', array($this, 'freez_add_ingredients_metaboxes'));
     add_action('add_meta_boxes', array($this, 'freez_add_shortcode_metaboxes'));
@@ -180,37 +180,12 @@ class Freez_Recipes {
     }
   }
   public function freez_create_taxonomy_categories() {
-    $labels = array(
-  		'name'                       => _x('Categorias', 'taxonomy general name', 'freez-recipes'),
-  		'singular_name'              => _x('Categoria', 'taxonomy singular name', 'freez-recipes'),
-  		'search_items'               => __('Buscar categorias', 'freez-recipes'),
-  		'popular_items'              => __('Categorias populares', 'freez-recipes'),
-  		'all_items'                  => __('Todas as categorias', 'freez-recipes'),
-  		'parent_item'                => null,
-  		'parent_item_colon'          => null,
-  		'edit_item'                  => __('Editar categoria', 'freez-recipes'),
-  		'update_item'                => __('Atualizar categoria', 'freez-recipes'),
-  		'add_new_item'               => __('Adicionar novo categoria', 'freez-recipes'),
-  		'new_item_name'              => __('Nome da nova categoria', 'freez-recipes'),
-  		'separate_items_with_commas' => __('Separe categorias com vírgula', 'freez-recipes'),
-  		'add_or_remove_items'        => __('Adicione ou remova categorias', 'freez-recipes'),
-  		'choose_from_most_used'      => __('Escolha nas categorias  mais utilizadas', 'freez-recipes'),
-  		'not_found'                  => __('Nenhuma categoria encontrada.', 'freez-recipes'),
-  		'menu_name'                  => __('Categorias de Receitas', 'freez-recipes'),
-  	);
-
   	$args = array(
-  		'hierarchical'          => false,
-  		'labels'                => $labels,
-  		'show_ui'               => true,
-  		'show_admin_column'     => true,
-  		'update_count_callback' => '_update_post_term_count',
-  		'query_var'             => true,
-      'meta_box_cb'           => false,
-  		'rewrite'               => array('slug' => 'freez_categories')
+      'hierarchical'      => true,
+      'show_admin_column' => true
   	);
 
-  	register_taxonomy('freez_categories', 'freez_recipes', $args);
+  	register_taxonomy('freez_category', 'freez_recipes', $args);
   }
   public function freez_create_taxonomy(){
   	$labels = array(
@@ -273,7 +248,7 @@ class Freez_Recipes {
   		'update_count_callback' => '_update_post_term_count',
   		'query_var'             => true,
       'meta_box_cb'           => false,
-  		'rewrite'               => array('slug' => 'freez_measurese')
+  		'rewrite'               => array('slug' => 'freez_measures')
   	);
 
   	register_taxonomy('freez_measures', 'freez_recipes', $args);
@@ -302,7 +277,8 @@ class Freez_Recipes {
         'menu_icon'           => 'dashicons-clipboard',
         'has_archive'         => true,
         'rewrite'             => array('slug' => 'receitas'),
-        'support'             => array('title', 'editor', 'author', 'thumbnail', 'custom-fields', 'revisions')
+        'support'             => array('title', 'editor', 'author', 'thumbnail', 'custom-fields', 'revisions'),
+        'taxonomies'          => array('freez_measures', 'freez_ingredients', 'freez_category')
       )
     );
   }
@@ -345,16 +321,34 @@ class Freez_Recipes {
         $str .= '</article>';
       }
     } else {
-      $recipes = get_posts(array(
+      $tax_query = array();
+      if(isset($atts['category'])) {
+        $categories = $atts['category'];
+        if(strpos($categories, ',')) {
+          $categories = substr($categories, 0, strlen($categories));
+          $categories = explode(',', $categories);
+        }
+        
+        array_push($tax_query, array(
+          'taxonomy' => 'freez_category',
+          'field' => 'slug',
+          'terms' => $categories
+        ));
+      }
+      $filters = array(
         'numberposts'    => -1,
         'post_type'      => 'freez_recipes',
         'post_status'    => 'publish',
-        'posts_per_page' => isset($atts['perpage']) ? $atts['perpage'] : 10,
-        'offset'         => isset($atts['perpage']) ? $atts['perpage'] : 10,
+        'posts_per_page' => isset($atts['perpage']) ? $atts['perpage'] : -1,
         'order'          => isset($atts['order']) ? $atts['order'] : 'DESC',
-        'orderby'        => isset($atts['orderby']) ? $atts['orderby'] : 'date'
-      ));
-      foreach($recipes as $recipe){
+        'orderby'        => isset($atts['orderby']) ? $atts['orderby'] : 'date',
+        'cache_results'  => false,
+        'no_found_rows'  => true,
+        'tax_query'      => $tax_query
+      );
+      $query = new WP_Query($filters);
+      
+      foreach($query->posts as $recipe){
         $id = strip_tags($recipe->ID);
         $str .= '<article id="recipes-' . $id . '" class="recipes-' . $id . ' post type-recipe">';
         $link = get_post_permalink($id);
