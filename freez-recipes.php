@@ -403,17 +403,19 @@ class Freez_Recipes {
     if(isset($post['checkbox-recipes'])){
       $ingredients = array();
       foreach($post['checkbox-recipes'] as $id){
-        // $recipe = get_post($id, 'OBJECT');
         $postmeta = json_decode(get_post_meta($id, 'freez_recipes_ingredients', true));
         if(count($postmeta) > 0){
           foreach($postmeta as $item){
+            $selected_recipe = get_post($id, 'OBJECT');
             if(array_key_exists($item->ingredient, $ingredients)){
               $ingredients[$item->ingredient]['amount'] = $ingredients[$item->ingredient]['amount'] + $item->amount;
+              $ingredients[$item->ingredient]['receita'] = $ingredients[$item->ingredient]['receita'] . ', ' . $selected_recipe->post_title;
             } else {
               $ingredients += array($item->ingredient => array(
                 'name' => $item->ingredient,
                 'amount' => $item->amount,
-                'measure' => $item->measure
+                'measure' => $item->measure,
+                'receita' => $selected_recipe->post_title
               ));
             }
           }
@@ -441,18 +443,20 @@ class Freez_Recipes {
                   <table class="table table-striped table-condensed">
                     <thead>
                       <tr>
-                        <td class="text-center">Ingredientes</td>
-                        <td class="text-center">Quantidade</td>
-                        <td class="text-left">Medida</td>
+                        <th class="text-left">Ingredientes</th>
+                        <th class="text-center" nowrap="nowrap">Quantidade</th>
+                        <th class="text-left" nowrap="nowrap">Medida</th>
+                        <th class="text-left">Receita</th>
                       </tr>
                     </thead>
                     <tfoot></tfoot>
                     <tbody>';
                     foreach($ingredients as $list_item) {
                       $page2 .= '<tr>
-                        <td class="text-center">' . $list_item['name'] . '</td>
-                        <td class="text-center">' . $list_item['amount'] . '</td>
-                        <td class="text-left">' . $list_item['measure'] . '</td>
+                        <td class="text-left">' . $list_item['name'] . '</td>
+                        <td class="text-center" nowrap="nowrap">' . $list_item['amount'] . '</td>
+                        <td class="text-left" nowrap="nowrap">' . $list_item['measure'] . '</td>
+                        <td class="text-left">' . $list_item['receita'] . '</td>
                       </tr>';
                     }
                     $page2 .= '</tbody>
