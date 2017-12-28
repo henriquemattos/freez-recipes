@@ -45,6 +45,14 @@ jQuery(document).ready(function(){
       return true;
     }
   });
+  jQuery('#freez-recipes-form-view-print input[type=checkbox]').live('click', function(event){
+    var checkedBoxes = jQuery('#freez-recipes-form-view-print input[type=checkbox]:checked').length;
+    if (checkedBoxes > 5) {
+      event.preventDefault();
+      alert("Você só pode selecionar até 5 receitas para ver lista de ingredientes ou gerar PDF.");
+      return false;
+    }
+  });
   jQuery('#freez-recipes-pdf-view').on('click', function(){
     if(!jQuery('#freez-recipes-form-view-print input[type=checkbox]:checked').length){
       alert('Você precisa selecionar pelo menos uma receita para ver a lista de ingredientes.');
@@ -94,5 +102,5 @@ jQuery(document).ready(function(){
       }
     });
     jQuery('#freez-recipes-form-action').val('freez_recipes_print');
-  })
+  });
 });
