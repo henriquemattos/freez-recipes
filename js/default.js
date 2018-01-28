@@ -47,9 +47,9 @@ jQuery(document).ready(function(){
   });
   jQuery('#freez-recipes-form-view-print input[type=checkbox]').live('click', function(event){
     var checkedBoxes = jQuery('#freez-recipes-form-view-print input[type=checkbox]:checked').length;
-    if (checkedBoxes > 5) {
+    if (checkedBoxes > 6) {
       event.preventDefault();
-      alert("Você só pode selecionar até 5 receitas para ver lista de ingredientes ou gerar PDF.");
+      alert("Você só pode selecionar até 6 receitas para ver lista de ingredientes ou gerar PDF.");
       return false;
     }
   });

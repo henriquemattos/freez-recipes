@@ -409,7 +409,7 @@ class Freez_Recipes {
             $selected_recipe = get_post($id, 'OBJECT');
             if(array_key_exists($item->ingredient, $ingredients)){
               $ingredients[$item->ingredient]['amount'] = $ingredients[$item->ingredient]['amount'] + $item->amount;
-              $ingredients[$item->ingredient]['receita'] = $ingredients[$item->ingredient]['receita'] . ', ' . $selected_recipe->post_title;
+              $ingredients[$item->ingredient]['receita'] = $ingredients[$item->ingredient]['receita'] . ',<br />' . $selected_recipe->post_title;
             } else {
               $ingredients += array($item->ingredient => array(
                 'name' => $item->ingredient,
