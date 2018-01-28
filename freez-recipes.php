@@ -322,9 +322,9 @@ class Freez_Recipes {
       }
     } else {
       $tax_query = array();
-      if(isset($atts['category'])) {
+      if (isset($atts['category'])) {
         $categories = $atts['category'];
-        if(strpos($categories, ',')) {
+        if (strpos($categories, ',')) {
           $categories = substr($categories, 0, strlen($categories));
           $categories = explode(',', $categories);
         }
@@ -348,23 +348,23 @@ class Freez_Recipes {
       );
       $query = new WP_Query($filters);
       
-      foreach($query->posts as $recipe){
+      foreach($query->posts as $recipe) {
         $id = strip_tags($recipe->ID);
         $str .= '<article id="recipes-' . $id . '" class="recipes-' . $id . ' post type-recipe">';
         $link = get_post_permalink($id);
-        if(isset($atts['link']) && $atts['link'] !== "false"){
+        if (isset($atts['link']) && $atts['link'] !== "false") {
           $link = get_post_permalink($id);
           $link_begin = '<a href="' . $link . '">';
           $link_end = '</a>';
         }
-        if(isset($atts['checkbox']) && $atts['checkbox'] !== "false"){
+        if (isset($atts['checkbox']) && $atts['checkbox'] !== "false") {
           $checkbox = '<input type="checkbox" value="' . $id . '" name="checkbox-recipes[]" class="freez-recipes-checkboxes" />';
         }
         $str .= "<p>{$checkbox}{$link_begin}{$recipe->post_title}{$link_end}</p>";
         $str .= '</article>';
       }
     }
-    if(isset($atts['checkbox']) && $atts['checkbox'] !== "false"){
+    if (isset($atts['checkbox']) && $atts['checkbox'] !== "false") {
       $str .= '<div>';
       $str .= '<button id="freez-recipes-pdf-view" name="freez-recipes-pdf-view" type="button">Ver Lista</button> ';
       $str .= '<button id="freez-recipes-pdf-print" name="freez-recipes-pdf-print" type="submit">Salvar PDF</button>';
@@ -381,25 +381,23 @@ class Freez_Recipes {
     ));
     wp_die();
   }
-  public function freez_recipes_print(){
-    $pdf_html = $this->generate_pdf_html($_POST);
-
-    $options = new Options();
-    $options->set('isRemoteEnabled', true);
-    // instantiate and use the dompdf class
-    $dompdf = new Dompdf($options);
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->loadHtml($pdf_html['page1'] . $pdf_html['page2']);
-    //$dompdf->loadHtml($pdf_html['page2']);
-
-    // Render the HTML as PDF
-    $dompdf->render();
-
-    // Output the generated PDF to Browser
-    $dompdf->stream();
-    // return true;
+  public function freez_recipes_print() {
+    if (isset($_POST) && isset($_POST['checkbox-recipes'])) {
+      $pdf_html = $this->generate_pdf_html($_POST);
+      $options = new Options();
+      $options->set('isRemoteEnabled', true);
+      // instantiate and use the dompdf class
+      $dompdf = new Dompdf($options);
+      $dompdf->setPaper('A4', 'portrait');
+      $dompdf->loadHtml($pdf_html['page1'] . $pdf_html['page2']);
+      // Render the HTML as PDF
+      $dompdf->render();
+      // Output the generated PDF to Browser
+      $dompdf->stream();
+    }
+    return true;
   }
-  public function generate_pdf_html($post = array()){
+  public function generate_pdf_html($post = array()) {
     if(isset($post['checkbox-recipes'])){
       $ingredients = array();
       foreach($post['checkbox-recipes'] as $id){
@@ -469,7 +467,7 @@ class Freez_Recipes {
       return $html;
     }
   }
-  public function get_freez_recipes_settings_description(){
+  public function get_freez_recipes_settings_description() {
     if($str_description = get_option('freez_recipes_settings_description')){
       return $str_description;
     } else {
