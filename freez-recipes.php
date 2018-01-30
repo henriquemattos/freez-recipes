@@ -13,7 +13,14 @@ Domain Path: /languages
 */
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 // include autoloader
-require_once 'dompdf/autoload.inc.php';
+// require_once 'dompdf/autoload.inc.php';
+
+require_once 'dompdf/lib/html5lib/Parser.php';
+require_once 'dompdf/lib/php-font-lib/src/FontLib/Autoloader.php';
+require_once 'dompdf/lib/php-svg-lib/src/autoload.php';
+require_once 'dompdf/src/Autoloader.php';
+Dompdf\Autoloader::register();
+
 
 // reference the Dompdf namespace
 use Dompdf\Dompdf;
